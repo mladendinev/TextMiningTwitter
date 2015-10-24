@@ -1,0 +1,33 @@
+Insomnia:
+"can't fall back asleep", "not sleeping", "never sleeping", "kept me awake",
+"trouble falling asleep", "not sleep", "why can't i sleep", "difficult to sleep", "kept me up", "keep you awake",
+"can not sleep", "lack of sleep", "abletosleep", "keeping me from sleeping", "keeping me awake", "o_o", "need sleep",
+"never sleep", "can't stay asleep", "teamnosleep", "insomniac", "keeps me awake", "no sleep", "can't sleep", "haven't slept",
+ "keep me awake", "keeps me up", "hard to sleep", "cant sleep", "up all  night", "keeping me up", "tough to sleep",
+ "sleep interruption", "tossing &amp; turning", "not letting me sleep", "cantsleep", "couldn't sleep",
+  "trouble sleeping", "wish i could sleep", "can't. sleep", "up all night", "o.o", "would never sleep",
+  "won't be sleeping", "had me up", "insomnia", "interrupted sleep", "able to sleep", "o__o", "unable to sleep",
+  "didn't sleep...for", "tossing and turning", "why am i awake", "got me up", "so awake", "keeps me from sleeping",
+  "trying to sleep", "cannot sleep", "zero sleep", "can't fall asleep", "still awake", "sleep issues", "has me up",
+  "won't be getting any sleep", "would let me sleep", "won't be able to sleep", "still up", "can't fall/stay asleep",
+  "sleepless", "upallnight", "can't go to sleep", "nosleep", "sleeplessness", "won't let me sleep", "needsleep", "not sleepy",
+  "didn't sleep for", "keeps you awake", "i don't sleep", "nosleepisbad", "no. sleep", "not been sleeping"
+
+Abnormal dreams (unusual dreams):
+"craziest dreams", "weird dreams", "freaky dreams", "wilddreams", "weird dream", "weirdest dreams", "bad dreams",
+"nightmare", "scary dreams", "nightmares", "bizarre dreams", "vivid dreams", "dreamt", "worst dreams", "crazy dreams", "strangest dreams",
+"dream", "night terrors", "dreams", "wild dreams"
+
+
+Also, you may want to identify sleepiness, either to analyse it as well or
+(which is more likely) use as additional "filter" to *exclude* these tweets from the final dataset.
+Somnolence (sleepiness):
+"zonked", "falling asleep", "fell asleep", "napped", "zzzzz", "groggy", "sleepy", "just waking up", "make me sleep", "need a nap",
+ "naps", "night night", "sleep all day", "night-night", "want to sleep", "induced sleep", "knock me out",
+ "put me to sleep", "zzz", "a nap", "drowsiness", "can barely stay awake", "slept for", "wanna sleep", "coma",
+ "sleeping all day", "drowsy", "sleeping a lot", "made me sleep", "knocked out", "all i want to do is sleep",
+ "napping", "exhausting", "comatose", "slept through", "need to sleep", "about to pass out", "making me fall asleep"
+
+
+Some emoticons (emoji) may be a good indicators as well in social media context, namely sleeping face 😴, tired face 😫 and sleepy face ?
+?. There are also other helpful emoji, you can find a list of them on Emojipedia (http://emojipedia.org).
