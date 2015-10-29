@@ -2,20 +2,53 @@ __author__ = 'mladen'
 
 import Levenshtein
 from nltk.tokenize import RegexpTokenizer
+import langid
+from nltk.parse import stanford
+from nltk import wordpunct_tokenize
+from nltk.corpus import stopwords
+
+
+def detectLanguage(tweet):
+    tupple = langid.classify(tweet)
+    language = tupple[0]
+    if language == "en":
+        return True
+    else:
+        return False
+
+def retweeeted(tweet):
+    if "RT" in tweet:
+        return True
+    else:
+        return False
+
+
+def containLinks(tweet):
+    if "https://" in tweet or "http://" in tweet:
+        return True
+    else:
+        return False
+
+
+validators = {"Retweet": retweeeted,
+              "Links": containLinks,
+              "Language": detectLanguage}
 
 def utf8(s):
     if isinstance(s, str):
         return unicode(s, 'utf-8')
-    return s
+        return s
 
 
 def clearpunct(s):
     tokenizer = RegexpTokenizer(r'\w+')
     return " ".join(tokenizer.tokenize(s))
 
+
 def strclean(s):
     s = utf8(s)
     return clearpunct(s.lower())
+
 
 def match_similar(tweets, against, min_ratio=0.95):
     for i in xrange(len(tweets)):
@@ -37,7 +70,9 @@ def match_similar(tweets, against, min_ratio=0.95):
     return tweets
 
 
-# Radu's method for searching diagnostic tweets
+    # Radu's method for searching diagnostic tweets
+
+
 def findIfDiagnostic(self, tweet):
     personalPronouns = ["i", "we", "me", "us", "our", "ours"]
     # check if certain keywords are in the piece of text
@@ -56,7 +91,17 @@ def findIfDiagnostic(self, tweet):
                         for pronoun in personalPronouns:
                             if pronoun in tweet["text"].lower().split():
                                 splitWords = tweet["text"].lower().split()
-                                differenceOfIndex = splitWords.index(tweet["suspectedDisease"]) - splitWords.index(verb)
+                                differenceOfIndex = splitWords.index(tweet["suspectedDisease"]) - splitWords.index(
+                                    verb)
                                 differenceOfIndexPronoun = splitWords.index(verb) - splitWords.index(pronoun)
                                 if differenceOfIndex <= 4 and differenceOfIndex >= 0 and differenceOfIndexPronoun > 0:
                                     return True
+
+
+# def dependencyTree(self):
+#     dependencies = self.parser.parseToStanfordDependencies("Mladen is a good guy.")
+#     return dependencies
+
+def dependencyTree(self, tweet):
+    parser = stanford.StanfordDependencyParser(model_path="englishPCFG.ser.gz")
+    print [parse.tree() for parse in parser.raw_parse(tweet)]

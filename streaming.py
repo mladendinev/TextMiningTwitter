@@ -40,7 +40,7 @@ access_secret = "OqFqVtS7srb0fuSIGXks9o5qFc8FNi5ScjkKogFLAWILG"
 auth = OAuthHandler(consumer_key, consumer_secret)  # OAuth object
 auth.set_access_token(access_token, access_secret)
 
-listOfKeywords = []
+listOfKeywords = 'insomnia'
 
 start_time = time.time()
 
@@ -56,7 +56,9 @@ class CustomStreamListener(StreamListener):
     def on_data(self, tweet):
         self.counter= self.counter + 1
         print ("counter", self.counter)
-        while (self.counter < 10):
+        if(self.counter == 100):
+            return
+        else:
             dataJson = json.loads(tweet)
             self.db['textMiningStream'].insert(dataJson)
 
@@ -73,4 +75,4 @@ class CustomStreamListener(StreamListener):
 
 
 sapi = Stream(auth, CustomStreamListener(start_time))
-sapi.filter(track=listOfKeywords)
+sapi.filter(track=['sleep','insomnia'])

@@ -25,9 +25,7 @@ class listener(StreamListener):
                 saveFile.write(data)
                 saveFile.write('\n')
                 saveFile.close()
- 
                 return True
- 
  
             except BaseException, e:
                 print 'failed ondata,', str(e)
