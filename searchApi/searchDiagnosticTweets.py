@@ -9,6 +9,8 @@ from celery import Celery
 import sys
 import logging
 import twitter
+from twitter import TwitterHTTPError
+
 count = 10
 twitterApiAuth = AuthenticationClass().twitterAuth()
 disorderListFile = "/home/mladen/FinalYearProject/word_lists/disorder_list.txt"
@@ -19,21 +21,21 @@ app.config_from_object('celeryconfig')
 
 
 @app.task
-def requestNewDiagnosticTweets(query, sinceId, maxId):
+def requestNewDiagnosticTweets(query, count, sinceId, maxId):
     try:
         if (maxId != 0):
-            print sinceId, maxId, count, query
-            tweets = twitterApiAuth.search.tweets(q=query, max_id= maxId - 1,since_id = sinceId)
+            tweets = twitterApiAuth.search.tweets(q=query, count=count, max_id=maxId,since_id = sinceId)
+            time.sleep(3)
             return tweets
         else:
-            print sinceId, maxId, count, query
-            tweets = twitterApiAuth.search.tweets(q=query, count=count,since_id=sinceId)
+            tweets = twitterApiAuth.search.tweets(q=query, count=count, since_id=sinceId)
             return tweets
 
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         print(exc_type, fname, exc_tb.tb_lineno, e)
+
 
 @app.task
 def fetchDiagnosticTweets():
@@ -55,26 +57,33 @@ def fetchDiagnosticTweets():
         sinceId = 0
         listIds = []
         numbValidTweets = 0
-        print "Loop starts", maxId
+        print "Loop starts"
         text = keyword.rstrip('\n')
-        while countTweets < 100:
+        while countTweets < 50:
             try:
                 print ("Number of tweets"), countTweets
                 # _sinceId = tweetsOperations.getSinceId("diagnosticTweets")
 
                 print text
                 sinceId = dbOperations.dbOperations().findElementInCollection("queries", {"query": text})["since_id"]
-                print "sinceID", sinceId
-                print "maxId", maxId
-                tweets = twitterApiAuth.search.tweets(q=text,count= count, max_id= maxId, since_id = sinceId)
-                time.sleep(3)
-                print len(tweets)   
+                tweets = requestNewDiagnosticTweets(text, count, sinceId, maxId)
+                time.sleep(1)
+                # print len(tweets)
                 if len(tweets["statuses"]) == 0:
-                    print 'no new tweets'
-                    break
+                    if (len(listIds) == 0):
+                        print "No new tweets since last time"
+                        break
+                    else:
+                        sinceId = max(listIds)
+                        print "Update since id", sinceId
+                        dbOperations.dbOperations().updateDocumnet("queries", {"query": text},
+                                                           {'$set': {'since_id': long(sinceId)}})
+                        print 'Reached end of stack'
+                        break
 
                 for tweet in tweets['statuses']:
-                    countTweets +=1
+                    print tweet["id"]
+                    countTweets += 1
                     listIds.append(int(tweet["id"]))
                     searchTweet = {"tweet_id": long(str(tweet["id"]))}
                     if dbOperations.dbOperations().findElementInCollection("sleepTweets", searchTweet) == None:
@@ -93,17 +102,15 @@ def fetchDiagnosticTweets():
                             dbOperations.dbOperations().insertData(saveDataToJson, "diagnosticTweets")
                             numbValidTweets += 1
                             print "Stored valid tweet"
+                maxId = min(listIds) -1
 
-                maxId = min(listIds)
-                sinceId = max(listIds)
-                print "Update since id", sinceId
-                dbOperations.dbOperations().updateDocumnet("queries", {"query": text}, {'$set': {'since_id': long(sinceId)}})
             except twitter.api.TwitterHTTPError as e:
                 print "twitter.api.TwitterHTTPError"
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                break
-            # except tw as e:
+                print e
+
+                # except tw as e:
 
                 #
                 # datapath = '/home/mladen/FinalYearProject/data/statistics'

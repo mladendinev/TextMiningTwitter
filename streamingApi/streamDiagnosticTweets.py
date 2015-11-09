@@ -26,8 +26,7 @@ class CustomStreamListener(StreamListener):
         self.counter = 0
         self.tweetValidator = tweetsOperations.validators
         self.countIter = self.iterationCount()
-
-
+        self._pishki = self.countIter
 
     def iterationCount(self):
         if db.dbOperations().countTweetsInDatabase("streamDiagnostic") == 0:
@@ -38,7 +37,7 @@ class CustomStreamListener(StreamListener):
         return numbIter
 
     def on_data(self, tweet):
-        if (self.counter == 100):
+        if (self.counter == 1000):
             sapi.disconnect()
         self.counter = self.counter + 1
         print ("counter", self.counter)
@@ -49,7 +48,6 @@ class CustomStreamListener(StreamListener):
             print dataJson["text"]
         else:
             saveDataToJson = {'text': dataJson["text"], "tweet_id": dataJson["id"], 'geo': dataJson["geo"],
-                              'iteration': self.countIter,
                               'userId': dataJson["user"]["id"], 'created_at': dataJson["created_at"],
                               'time_zone': dataJson["user"]["time_zone"]}
             print "Stored"
