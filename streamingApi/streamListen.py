@@ -1,3 +1,4 @@
+# __author__ = 'mladen'
 from tweepy import StreamListener
 import json, time, sys
 from tweepy import Stream
