@@ -208,5 +208,5 @@ def getSearchTermsFromFile(fileName):
 #     return dependencies
 
 def dependencyTree(self, tweet):
-    parser = stanford.StanfordDependencyParser(model_path="englishPCFG.ser.gz")
+    parser = stanford.StanfordDependencyParser(model_path="/home/mladen/FinalYearProject/data/englishPCFG.ser.gz")
     print [parse.tree() for parse in parser.raw_parse(tweet)]
