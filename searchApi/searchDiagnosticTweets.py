@@ -1,6 +1,6 @@
 # __author__ = 'mladen'
 
-from auth.Authentication import AuthenticationClass
+from auth.Authentication import Authentication
 from tweetsHelper import tweetsOperations
 import time
 from database import dbOperations
@@ -12,7 +12,7 @@ import twitter
 from twitter import TwitterHTTPError
 
 count = 10
-twitterApiAuth = AuthenticationClass().twitterAuth()
+twitterApiAuth = Authentication().twitterAuth()
 disorderListFile = "/home/mladen/FinalYearProject/word_lists/disorder_list.txt"
 wordDictionary = tweetsOperations.getSearchTermsFromFile(disorderListFile)
 
@@ -40,7 +40,6 @@ def requestNewDiagnosticTweets(query, count, sinceId, maxId):
 @app.task
 def fetchDiagnosticTweets():
     logging.info("Fetch tweets")
-    tweetsReceived = []
     tweetValidator = tweetsOperations.validators
     dbHelper = dbOperations
 
@@ -62,9 +61,6 @@ def fetchDiagnosticTweets():
         while countTweets < 50:
             try:
                 print ("Number of tweets"), countTweets
-                # _sinceId = tweetsOperations.getSinceId("diagnosticTweets")
-
-                print text
                 sinceId = dbOperations.dbOperations().findElementInCollection("queries", {"query": text})["since_id"]
                 tweets = requestNewDiagnosticTweets(text, count, sinceId, maxId)
                 time.sleep(1)
@@ -95,10 +91,12 @@ def fetchDiagnosticTweets():
                             # if tweetDiseaseChecker.findIfDiagnosticFetch(tweet["text"],
                             #                                              keyword) or tweetDiseaseChecker.findIfContainsMed(
                             #         tweet["text"], keyword):
-                            saveDataToJson = {'text': tweet["text"], "tweet_id": tweet["id"], 'geo': tweet["geo"],
+                            saveDataToJson = {'text': tweet["text"] , "tweet_id": tweet["id"], 'geo': tweet["geo"],
                                               'iteration': numbIter,
                                               'userId': tweet["user"]["id"], 'created_at': tweet["created_at"],
-                                              'time_zone': tweet["user"]["time_zone"]}
+                                              'time_zone': tweet["user"]["time_zone"], "utc_offset":tweet["user"]["utc_offset"],
+                                              'place': tweet["place"],
+                                              'coordinates': tweet["coordinates"]}
                             dbOperations.dbOperations().insertData(saveDataToJson, "diagnosticTweets")
                             numbValidTweets += 1
                             print "Stored valid tweet"

@@ -192,60 +192,6 @@ def match_similar(tweets, against, min_ratio=0.95):
     return tweets
 
 
-    # Radu's method for searching diagnostic tweets
-
-
-def findIfDiagnostic(self, tweet):
-    personalPronouns = ["i", "we", "me", "us", "our", "ours"]
-    # check if certain keywords are in the piece of text
-    avoidedVerbs = ["think", "believe", "thinks"]
-    verblist = ["got", "diagnosed", "suffering", "suffer", "have", "ill"]
-    temporalAdverbs = ["today", "now", "recently", "day", "ago", "since", "week", "days", "week", "weeks"]
-    invalid = False
-    for verb in verblist:
-        if verb in tweet["text"].lower().split() and tweet["suspectedDisease"] in tweet["text"].lower().split():
-            for avoidedVerb in avoidedVerbs:
-                if avoidedVerb in tweet["text"].lower().split():
-                    invalid = True
-            if not invalid:
-                for adverb in temporalAdverbs:
-                    if adverb in tweet["text"].lower().split():
-                        for pronoun in personalPronouns:
-                            if pronoun in tweet["text"].lower().split():
-                                splitWords = tweet["text"].lower().split()
-                                differenceOfIndex = splitWords.index(tweet["suspectedDisease"]) - splitWords.index(
-                                    verb)
-                                differenceOfIndexPronoun = splitWords.index(verb) - splitWords.index(pronoun)
-                                if differenceOfIndex <= 4 and differenceOfIndex >= 0 and differenceOfIndexPronoun > 0:
-                                    return True
-
-
-def findIfDiagnosticFetch(tweet, disease):
-    # check if certain keywords are in the piece of text
-    verblist = ["have", "got", "diagnosed with", "suffering from"]
-    for verb in verblist:
-        if verb + " " + disease in tweet.lower():
-            # self._diagnosedTweets.append(tweet)
-            return True
-
-
-def findIfContainsMed(tweet, disease):
-    typicalMedsFile = "/home/mladen/FinalYearProject/word_lists/typicalmeds.txt"
-    atypicalMedsFile = "/home/mladen/FinalYearProject/word_lists/atypicalmeds.txt"
-    typicalMeds = getSearchTermsFromFile(typicalMedsFile)
-    atypicalMeds = getSearchTermsFromFile(atypicalMedsFile)
-
-    for item in atypicalMeds:
-        if item.lower() in tweet.lower():
-            # self._tweetsWithAtypicalMeds.append(disease + " : " + tweet)
-            return True
-
-    for item in typicalMeds:
-        if item.lower() in tweet.lower() and tweet:
-            # self._tweetsWithTypicalMeds.append(disease + " : " + tweet)
-            return True
-
-
 def getSearchTermsFromFile(fileName):
     # os.path.join('/home/mladen/FinalYearProject/word_lists',       )
     try:

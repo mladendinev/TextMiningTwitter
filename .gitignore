@@ -4,3 +4,13 @@
 /docs/*
 /englishPCFG.ser.gz
 /configDb.py
+/stanfordParserFull/*
+/stanfordParser/*
+/musixmactch/*
+/configDb/*
+/searchApi/celerybeat-schedule
+/searchApi/celeryconfig.py
+/searchApi/celeryconfig.pyc
+/searchApi/dump.rdb
+/searchApi/temp-18941.rdb
+/word_lists/*

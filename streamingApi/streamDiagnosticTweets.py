@@ -9,7 +9,7 @@ from tweepy.streaming import StreamListener
 import pymongo
 from tweetsHelper import tweetsOperations
 
-from auth.Authentication import AuthenticationClass
+from auth.Authentication import Authentication
 from database import dbOperations as db
 
 filter = ["schizophrenia,schiz", "schizophreniform", "schizo affective", "psychosis", "delusional disorder",
@@ -25,55 +25,51 @@ class CustomStreamListener(StreamListener):
         self.db = pymongo.MongoClient().textMiningStream
         self.counter = 0
         self.tweetValidator = tweetsOperations.validators
-        self.countIter = self.iterationCount()
-        self._pishki = self.countIter
 
     def iterationCount(self):
         if db.dbOperations().countTweetsInDatabase("streamDiagnostic") == 0:
             numbIter = 1
         else:
             numbIter = db.dbOperations().returnLastIteration("streamDiagnostic")
-            numbIter = numbIter + 1
+            numbIter += 1
         return numbIter
 
     def on_data(self, tweet):
-        if (self.counter == 1000):
+        if self.counter == 1000:
             sapi.disconnect()
-        self.counter = self.counter + 1
+        self.counter = +1
         print ("counter", self.counter)
         dataJson = json.loads(tweet)
+
         if self.tweetValidator["Links"](dataJson["text"]) or self.tweetValidator["Retweet"](dataJson["text"]) or not \
                 self.tweetValidator["Language"](dataJson["text"]):
             print "Invalid"
             print dataJson["text"]
         else:
             saveDataToJson = {'text': dataJson["text"], "tweet_id": dataJson["id"], 'geo': dataJson["geo"],
+                              'coordinates': dataJson["coordinates"], 'place': dataJson["place"],
                               'userId': dataJson["user"]["id"], 'created_at': dataJson["created_at"],
-                              'time_zone': dataJson["user"]["time_zone"]}
+                              'time_zone': dataJson["user"]["time_zone"], "utc_offset": dataJson["user"]["utc_offset"]}
             print "Stored"
             db.dbOperations().insertData(saveDataToJson, "streamDiagnostic")
 
-
     def on_status(self, status):
         print status.text
-
 
     def on_error(self, status_code):
         print >> sys.stderr, 'Encountered error with status code:', status_code
         return True  # Don't kill the stream
 
-
     def on_exception(self, exception):
         """Called when an unhandled exception occurs."""
         return exception
-
 
     def on_timeout(self):
         print >> sys.stderr, 'Timeout...'
         return True  # Don't kill the stream
 
 
-bum = AuthenticationClass()
+bum = Authentication()
 auth = bum.tweepyAuth()
 sapi = Stream(auth, CustomStreamListener())
 try:

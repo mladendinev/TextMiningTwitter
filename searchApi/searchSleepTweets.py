@@ -6,7 +6,7 @@ from celery import Celery
 
 from database import dbOperations
 from tweetsHelper import tweetsOperations
-from auth.Authentication import AuthenticationClass
+from auth.Authentication import Authentication
 
 
 
@@ -27,7 +27,7 @@ app = Celery('tasks')
 app.config_from_object('celeryconfig')
 
 count = 10
-twitterApiAuth = AuthenticationClass().twitterAuth()  # auth credentials
+twitterApiAuth = Authentication().twitterAuth()  # auth credentials
 
 
 @app.task
