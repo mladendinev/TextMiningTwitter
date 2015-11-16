@@ -1,15 +1,16 @@
 # __author__ = 'mladen'
+import time
+import os
+import sys
+import logging
+import logging.config
+
+from celery import Celery
+import twitter
 
 from auth.Authentication import Authentication
 from tweetsHelper import tweetsOperations
-import time
 from database import dbOperations
-import os
-from celery import Celery
-import sys
-import logging
-import twitter
-from twitter import TwitterHTTPError
 
 count = 10
 twitterApiAuth = Authentication().twitterAuth()
@@ -19,6 +20,8 @@ wordDictionary = tweetsOperations.getSearchTermsFromFile(disorderListFile)
 app = Celery('tasks')
 app.config_from_object('celeryconfig')
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 @app.task
 def requestNewDiagnosticTweets(query, count, sinceId, maxId):
@@ -39,7 +42,7 @@ def requestNewDiagnosticTweets(query, count, sinceId, maxId):
 
 @app.task
 def fetchDiagnosticTweets():
-    logging.info("Fetch tweets")
+    logger.info("Fetching tweets")
     tweetValidator = tweetsOperations.validators
     dbHelper = dbOperations
 
@@ -58,7 +61,7 @@ def fetchDiagnosticTweets():
         numbValidTweets = 0
         print "Loop starts"
         text = keyword.rstrip('\n')
-        while countTweets < 50:
+        while countTweets < 10:
             try:
                 print ("Number of tweets"), countTweets
                 sinceId = dbOperations.dbOperations().findElementInCollection("queries", {"query": text})["since_id"]
@@ -103,10 +106,7 @@ def fetchDiagnosticTweets():
                 maxId = min(listIds) -1
 
             except twitter.api.TwitterHTTPError as e:
-                print "twitter.api.TwitterHTTPError"
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print e
+                logger.error("Exception thrown %e",exc_info=True)
 
                 # except tw as e:
 
@@ -121,4 +121,10 @@ def fetchDiagnosticTweets():
 
 if __name__ == '__main__':
     print "Searching tweets..."
+    fh = logging.FileHandler('/home/mladen/FinalYearProject/auth/log/logDiagnostic.log')
+    fh.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
     fetchDiagnosticTweets()
+
