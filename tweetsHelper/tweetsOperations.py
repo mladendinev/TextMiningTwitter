@@ -93,8 +93,6 @@ def objectRemoval(tweet):
     tweet = re.sub(r'(#([^\s]+))', '', tweet)
     return tweet
 
-
-
 def remove_special_unicode(text):
     if isinstance(text, str):
         text = text.decode("utf-8", "ignore")

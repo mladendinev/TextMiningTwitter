@@ -18,7 +18,6 @@ class ExctractTweetsFromTimeline(object):
 
     def calculate_localtime(self, date, offset):
         date = self.format_date(date)
-
         offset /= 3600
         localtime = date + timedelta(hours=offset)
         return localtime
@@ -41,7 +40,8 @@ class ExctractTweetsFromTimeline(object):
                     print tweet["text"]
                     print tweet["created_at"]
                 else:
-                   print "opii"
+                   print "No more tweets to fetch within this range"
+                   break
             maxIdBefore = min(listIds)
 
     def findTweetsAfterDiagnosis(self, diagId, userId, minLimit, maxLimit):

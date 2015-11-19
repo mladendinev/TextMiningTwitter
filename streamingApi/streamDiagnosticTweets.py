@@ -37,7 +37,7 @@ class CustomStreamListener(StreamListener):
     def on_data(self, tweet):
         if self.counter == 1000:
             sapi.disconnect()
-        self.counter = +1
+        self.counter +=1
         print ("counter", self.counter)
         dataJson = json.loads(tweet)
 

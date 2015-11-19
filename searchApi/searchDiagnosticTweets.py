@@ -61,7 +61,7 @@ def fetchDiagnosticTweets():
         numbValidTweets = 0
         print "Loop starts"
         text = keyword.rstrip('\n')
-        while countTweets < 10:
+        while countTweets < 50:
             try:
                 print ("Number of tweets"), countTweets
                 sinceId = dbOperations.dbOperations().findElementInCollection("queries", {"query": text})["since_id"]
