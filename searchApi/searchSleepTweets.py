@@ -112,7 +112,7 @@ def runTweets():
             print ("Exception searching tweets", e)
             break
 
-        datapath = '/home/mladen/FinalYearProject/data'
+        datapath = '/home/mladen/TextMiningTwitter/data'
         completeName = os.path.join(datapath, 'statistics' + str(numbIter) + ".txt")
         f = open(completeName, 'w')
         f.write("Number of tweets fetched" + " " + str(count))

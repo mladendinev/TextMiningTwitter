@@ -13,7 +13,7 @@ import twitter
 class dbOperations(object):
     def __init__(self):
         try:
-            self._configFile = "/home/mladen/FinalYearProject/configFiles/config.py"
+            self._configFile = "/home/mladen/TextMiningTwitter/configFiles/config.py"
             self._config = {}
             execfile(self._configFile, self._config)
             self.client = pymongo.MongoClient(

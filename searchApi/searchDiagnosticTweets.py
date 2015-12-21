@@ -12,9 +12,9 @@ from auth.Authentication import Authentication
 from tweetsHelper import tweetsOperations
 from database import dbOperations
 
-count = 10
+count = 30
 twitterApiAuth = Authentication().twitterAuth()
-disorderListFile = "/home/mladen/FinalYearProject/word_lists/disorder_list.txt"
+disorderListFile = "/home/mladen/TextMiningTwitter/word_lists/disorder_list.txt"
 wordDictionary = tweetsOperations.getSearchTermsFromFile(disorderListFile)
 
 app = Celery('tasks')
@@ -61,7 +61,7 @@ def fetchDiagnosticTweets():
         numbValidTweets = 0
         print "Loop starts"
         text = keyword.rstrip('\n')
-        while countTweets < 50:
+        while countTweets < 120:
             try:
                 print ("Number of tweets"), countTweets
                 sinceId = dbOperations.dbOperations().findElementInCollection("queries", {"query": text})["since_id"]
@@ -111,7 +111,7 @@ def fetchDiagnosticTweets():
                 # except tw as e:
 
                 #
-                # datapath = '/home/mladen/FinalYearProject/data/statistics'
+                # datapath = '/home/mladen/TextMiningTwitter/data/statistics'
                 # completeName = os.path.join(datapath, 'diagnosisStats' + str(numbIter) + ".txt")
                 # f = open(completeName, 'w')
                 # f.write("Number of tweets fetched" + " " + str(self._countTweets))
@@ -121,7 +121,7 @@ def fetchDiagnosticTweets():
 
 if __name__ == '__main__':
     print "Searching tweets..."
-    fh = logging.FileHandler('/home/mladen/FinalYearProject/auth/log/logDiagnostic.log')
+    fh = logging.FileHandler('/home/mladen/TextMiningTwitter/auth/log/logDiagnostic.log')
     fh.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     fh.setFormatter(formatter)

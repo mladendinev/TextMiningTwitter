@@ -11,8 +11,8 @@ def findIfDiagnosticFetch(tweet):
             return True
 
 def findIfContainsMed(tweet):
-    typicalMedsFile = "/home/mladen/FinalYearProject/word_lists/typicalmeds.txt"
-    atypicalMedsFile = "/home/mladen/FinalYearProject/word_lists/atypicalmeds.txt"
+    typicalMedsFile = "/home/mladen/TextMiningTwitter/word_lists/typicalmeds.txt"
+    atypicalMedsFile = "/home/mladen/TextMiningTwitter/word_lists/atypicalmeds.txt"
     typicalMeds = tweetsOperations.getSearchTermsFromFile(typicalMedsFile)
     atypicalMeds = tweetsOperations.getSearchTermsFromFile(atypicalMedsFile)
 

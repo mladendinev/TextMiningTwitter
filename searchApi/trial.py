@@ -20,7 +20,7 @@ auth.set_access_token(access_token, access_secret)
 api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 #
 # result =  tweepy.Cursor(api.search,q='Disases',count=10, result_type='mixed').items(10)
-disorderListFile = "/home/mladen/FinalYearProject/word_lists/disorder_list.txt"
+disorderListFile = "/home/mladen/TextMiningTwitter/word_lists/disorder_list.txt"
 wordDictionary = tweetsOperations.getSearchTermsFromFile(disorderListFile)
 
 
@@ -30,7 +30,7 @@ wordDictionary = tweetsOperations.getSearchTermsFromFile(disorderListFile)
 #     kurec = json.dumps(res, indent=1)
 #     print res["user"]["time_zone"]
 #
-#     datapath = '/home/mladen/FinalYearProject/data'
+#     datapath = '/home/mladen/TextMiningTwitter/data'
 #     completeName = os.path.join(datapath, 'kur1'+ ".txt")
 #     f = open(completeName, 'w')
 #     f.write(kurec)

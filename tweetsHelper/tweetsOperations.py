@@ -191,7 +191,7 @@ def match_similar(tweets, against, min_ratio=0.95):
 
 
 def getSearchTermsFromFile(fileName):
-    # os.path.join('/home/mladen/FinalYearProject/word_lists',       )
+    # os.path.join('/home/mladen/TextMiningTwitter/word_lists',       )
     try:
         with open(fileName, 'r') as disorderFile:
             disorderList = disorderFile.readlines()
@@ -206,5 +206,5 @@ def getSearchTermsFromFile(fileName):
 #     return dependencies
 
 def dependencyTree(self, tweet):
-    parser = stanford.StanfordDependencyParser(model_path="/home/mladen/FinalYearProject/data/englishPCFG.ser.gz")
+    parser = stanford.StanfordDependencyParser(model_path="/home/mladen/TextMiningTwitter/data/englishPCFG.ser.gz")
     print [parse.tree() for parse in parser.raw_parse(tweet)]
