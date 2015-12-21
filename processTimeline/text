@@ -1,0 +1,347 @@
+{
+ "contributors": null, 
+ "truncated": false, 
+ "text": "RT @djafrojack: Tomorrow my newest release will drop!!!! #Unstoppable https://t.co/48VDdcu1gH", 
+ "is_quote_status": false, 
+ "in_reply_to_status_id": null, 
+ "id": 660822966805118978, 
+ "favorite_count": 0, 
+ "source": "<a href=\"http://tapbots.com/tweetbot\" rel=\"nofollow\">Tweetbot for i\u039fS</a>", 
+ "retweeted": false, 
+ "coordinates": null, 
+ "entities": {
+  "symbols": [], 
+  "user_mentions": [
+   {
+    "id": 35727881, 
+    "indices": [
+     3, 
+     14
+    ], 
+    "id_str": "35727881", 
+    "screen_name": "djafrojack", 
+    "name": "Afrojack"
+   }
+  ], 
+  "hashtags": [
+   {
+    "indices": [
+     57, 
+     69
+    ], 
+    "text": "Unstoppable"
+   }
+  ], 
+  "urls": [
+   {
+    "url": "https://t.co/48VDdcu1gH", 
+    "indices": [
+     70, 
+     93
+    ], 
+    "expanded_url": "https://instagram.com/p/9i5MWIItOq/", 
+    "display_url": "instagram.com/p/9i5MWIItOq/"
+   }
+  ]
+ }, 
+ "in_reply_to_screen_name": null, 
+ "id_str": "660822966805118978", 
+ "retweet_count": 71, 
+ "in_reply_to_user_id": null, 
+ "favorited": false, 
+ "retweeted_status": {
+  "contributors": null, 
+  "truncated": false, 
+  "text": "Tomorrow my newest release will drop!!!! #Unstoppable https://t.co/48VDdcu1gH", 
+  "is_quote_status": false, 
+  "in_reply_to_status_id": null, 
+  "id": 660822607751725056, 
+  "favorite_count": 166, 
+  "source": "<a href=\"http://instagram.com\" rel=\"nofollow\">Instagram</a>", 
+  "retweeted": false, 
+  "coordinates": null, 
+  "entities": {
+   "symbols": [], 
+   "user_mentions": [], 
+   "hashtags": [
+    {
+     "indices": [
+      41, 
+      53
+     ], 
+     "text": "Unstoppable"
+    }
+   ], 
+   "urls": [
+    {
+     "url": "https://t.co/48VDdcu1gH", 
+     "indices": [
+      54, 
+      77
+     ], 
+     "expanded_url": "https://instagram.com/p/9i5MWIItOq/", 
+     "display_url": "instagram.com/p/9i5MWIItOq/"
+    }
+   ]
+  }, 
+  "in_reply_to_screen_name": null, 
+  "id_str": "660822607751725056", 
+  "retweet_count": 71, 
+  "in_reply_to_user_id": null, 
+  "favorited": false, 
+  "user": {
+   "follow_request_sent": false, 
+   "has_extended_profile": false, 
+   "profile_use_background_image": false, 
+   "default_profile_image": false, 
+   "id": 35727881, 
+   "profile_background_image_url_https": "https://pbs.twimg.com/profile_background_images/468299921066430464/SccJmjAs.jpeg", 
+   "verified": true, 
+   "profile_text_color": "333333", 
+   "profile_image_url_https": "https://pbs.twimg.com/profile_images/597820732224208896/lfmnud8M_normal.jpg", 
+   "profile_sidebar_fill_color": "EFEFEF", 
+   "entities": {
+    "url": {
+     "urls": [
+      {
+       "url": "https://t.co/6knVSzckD9", 
+       "indices": [
+        0, 
+        23
+       ], 
+       "expanded_url": "http://afrojack.com", 
+       "display_url": "afrojack.com"
+      }
+     ]
+    }, 
+    "description": {
+     "urls": []
+    }
+   }, 
+   "followers_count": 2013148, 
+   "profile_sidebar_border_color": "000000", 
+   "id_str": "35727881", 
+   "profile_background_color": "000000", 
+   "listed_count": 6475, 
+   "is_translation_enabled": true, 
+   "utc_offset": -10800, 
+   "statuses_count": 23156, 
+   "description": "The time is now. #Unstoppable out November 2nd @WallRecordings", 
+   "friends_count": 904, 
+   "location": "", 
+   "profile_link_color": "8F8F8F", 
+   "profile_image_url": "http://pbs.twimg.com/profile_images/597820732224208896/lfmnud8M_normal.jpg", 
+   "following": false, 
+   "geo_enabled": true, 
+   "profile_banner_url": "https://pbs.twimg.com/profile_banners/35727881/1445891248", 
+   "profile_background_image_url": "http://pbs.twimg.com/profile_background_images/468299921066430464/SccJmjAs.jpeg", 
+   "screen_name": "djafrojack", 
+   "lang": "en", 
+   "profile_background_tile": false, 
+   "favourites_count": 522, 
+   "name": "Afrojack", 
+   "notifications": false, 
+   "url": "https://t.co/6knVSzckD9", 
+   "created_at": "Mon Apr 27 12:21:25 +0000 2009", 
+   "contributors_enabled": false, 
+   "time_zone": "Greenland", 
+   "protected": false, 
+   "default_profile": false, 
+   "is_translator": false
+  }, 
+  "geo": null, 
+  "in_reply_to_user_id_str": null, 
+  "possibly_sensitive": false, 
+  "lang": "en", 
+  "created_at": "Sun Nov 01 14:16:01 +0000 2015", 
+  "in_reply_to_status_id_str": null, 
+  "place": null
+ }, 
+ "user": {
+  "follow_request_sent": false, 
+  "has_extended_profile": false, 
+  "profile_use_background_image": false, 
+  "default_profile_image": false, 
+  "id": 19405774, 
+  "profile_background_image_url_https": "https://pbs.twimg.com/profile_background_images/525608275429949440/Ptsz4Si1.jpeg", 
+  "verified": true, 
+  "profile_text_color": "6A3C8C", 
+  "profile_image_url_https": "https://pbs.twimg.com/profile_images/484985031215960065/Vh9v9Z-6_normal.jpeg", 
+  "profile_sidebar_fill_color": "C6CFC3", 
+  "entities": {
+   "url": {
+    "urls": [
+     {
+      "url": "http://t.co/rnDtHX8I3r", 
+      "indices": [
+       0, 
+       22
+      ], 
+      "expanded_url": "http://www.facebook.com/professorgreen", 
+      "display_url": "facebook.com/professorgreen"
+     }
+    ]
+   }, 
+   "description": {
+    "urls": [
+     {
+      "url": "https://t.co/wZuXyU102X", 
+      "indices": [
+       47, 
+       70
+      ], 
+      "expanded_url": "https://bit.ly/PGLucky", 
+      "display_url": "bit.ly/PGLucky"
+     }
+    ]
+   }
+  }, 
+  "followers_count": 2102655, 
+  "profile_sidebar_border_color": "000000", 
+  "id_str": "19405774", 
+  "profile_background_color": "000000", 
+  "listed_count": 2434, 
+  "is_translation_enabled": true, 
+  "utc_offset": 0, 
+  "statuses_count": 57702, 
+  "description": "My autobiography 'Lucky' out NOW! Get it here: https://t.co/wZuXyU102X", 
+  "friends_count": 1147, 
+  "location": "Snapchat: oigreeners", 
+  "profile_link_color": "000000", 
+  "profile_image_url": "http://pbs.twimg.com/profile_images/484985031215960065/Vh9v9Z-6_normal.jpeg", 
+  "following": false, 
+  "geo_enabled": false, 
+  "profile_banner_url": "https://pbs.twimg.com/profile_banners/19405774/1440771238", 
+  "profile_background_image_url": "http://pbs.twimg.com/profile_background_images/525608275429949440/Ptsz4Si1.jpeg", 
+  "screen_name": "professorgreen", 
+  "lang": "en", 
+  "profile_background_tile": false, 
+  "favourites_count": 1014, 
+  "name": "Professor Green", 
+  "notifications": false, 
+  "url": "http://t.co/rnDtHX8I3r", 
+  "created_at": "Fri Jan 23 18:16:06 +0000 2009", 
+  "contributors_enabled": false, 
+  "time_zone": "London", 
+  "protected": false, 
+  "default_profile": false, 
+  "is_translator": false
+ }, 
+ "geo": null, 
+ "in_reply_to_user_id_str": null, 
+ "possibly_sensitive": false, 
+ "lang": "en", 
+ "created_at": "Sun Nov 01 14:17:27 +0000 2015", 
+ "in_reply_to_status_id_str": null, 
+ "place": null
+}STANAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+{
+ "contributors": null, 
+ "truncated": false, 
+ "text": "@BOZMUFC I\u2019ve only done it a couple of times myself but going home is always the better option", 
+ "is_quote_status": false, 
+ "in_reply_to_status_id": 660822773556715520, 
+ "id": 660822936580935680, 
+ "favorite_count": 3, 
+ "source": "<a href=\"http://tapbots.com/tweetbot\" rel=\"nofollow\">Tweetbot for i\u039fS</a>", 
+ "retweeted": false, 
+ "coordinates": null, 
+ "entities": {
+  "symbols": [], 
+  "user_mentions": [
+   {
+    "id": 3126922912, 
+    "indices": [
+     0, 
+     8
+    ], 
+    "id_str": "3126922912", 
+    "screen_name": "BOZMUFC", 
+    "name": "Boz"
+   }
+  ], 
+  "hashtags": [], 
+  "urls": []
+ }, 
+ "in_reply_to_screen_name": "BOZMUFC", 
+ "id_str": "660822936580935680", 
+ "retweet_count": 0, 
+ "in_reply_to_user_id": 3126922912, 
+ "favorited": false, 
+ "user": {
+  "follow_request_sent": false, 
+  "has_extended_profile": false, 
+  "profile_use_background_image": false, 
+  "default_profile_image": false, 
+  "id": 19405774, 
+  "profile_background_image_url_https": "https://pbs.twimg.com/profile_background_images/525608275429949440/Ptsz4Si1.jpeg", 
+  "verified": true, 
+  "profile_text_color": "6A3C8C", 
+  "profile_image_url_https": "https://pbs.twimg.com/profile_images/484985031215960065/Vh9v9Z-6_normal.jpeg", 
+  "profile_sidebar_fill_color": "C6CFC3", 
+  "entities": {
+   "url": {
+    "urls": [
+     {
+      "url": "http://t.co/rnDtHX8I3r", 
+      "indices": [
+       0, 
+       22
+      ], 
+      "expanded_url": "http://www.facebook.com/professorgreen", 
+      "display_url": "facebook.com/professorgreen"
+     }
+    ]
+   }, 
+   "description": {
+    "urls": [
+     {
+      "url": "https://t.co/wZuXyU102X", 
+      "indices": [
+       47, 
+       70
+      ], 
+      "expanded_url": "https://bit.ly/PGLucky", 
+      "display_url": "bit.ly/PGLucky"
+     }
+    ]
+   }
+  }, 
+  "followers_count": 2102655, 
+  "profile_sidebar_border_color": "000000", 
+  "id_str": "19405774", 
+  "profile_background_color": "000000", 
+  "listed_count": 2434, 
+  "is_translation_enabled": true, 
+  "utc_offset": 0, 
+  "statuses_count": 57702, 
+  "description": "My autobiography 'Lucky' out NOW! Get it here: https://t.co/wZuXyU102X", 
+  "friends_count": 1147, 
+  "location": "Snapchat: oigreeners", 
+  "profile_link_color": "000000", 
+  "profile_image_url": "http://pbs.twimg.com/profile_images/484985031215960065/Vh9v9Z-6_normal.jpeg", 
+  "following": false, 
+  "geo_enabled": false, 
+  "profile_banner_url": "https://pbs.twimg.com/profile_banners/19405774/1440771238", 
+  "profile_background_image_url": "http://pbs.twimg.com/profile_background_images/525608275429949440/Ptsz4Si1.jpeg", 
+  "screen_name": "professorgreen", 
+  "lang": "en", 
+  "profile_background_tile": false, 
+  "favourites_count": 1014, 
+  "name": "Professor Green", 
+  "notifications": false, 
+  "url": "http://t.co/rnDtHX8I3r", 
+  "created_at": "Fri Jan 23 18:16:06 +0000 2009", 
+  "contributors_enabled": false, 
+  "time_zone": "London", 
+  "protected": false, 
+  "default_profile": false, 
+  "is_translator": false
+ }, 
+ "geo": null, 
+ "in_reply_to_user_id_str": "3126922912", 
+ "lang": "en", 
+ "created_at": "Sun Nov 01 14:17:20 +0000 2015", 
+ "in_reply_to_status_id_str": "660822773556715520", 
+ "place": null
+}STANAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
