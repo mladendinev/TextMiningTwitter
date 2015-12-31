@@ -1,14 +1,8 @@
 # __author__ = 'mladen'
 
 import pymongo
-import json
-import sys
-from tweetsHelper import filters
 from auth import Authentication
 from bson.objectid import ObjectId
-import time
-import twitter
-
 
 class dbOperations(object):
     def __init__(self):
@@ -33,7 +27,7 @@ class dbOperations(object):
 
     def returnAllTweetsFromCollection(self, collection):
         try:
-            docs =  self.db[collection].find()
+            docs = self.db[collection].find()
             for doc in docs:
                 return doc
 
@@ -86,18 +80,17 @@ class dbOperations(object):
         except Exception as e:
             print "Iterating data failied", e
 
-    def returnFilteredTweets(self, collection):
+    def returnField(self, collection, field):
         try:
-            firstCount = 0
-            secondCount = 0
-            for doc in self.db[collection].find():
-                # if filters.findIfContainsMed(doc["text"]) or filters.findIfDiagnosticFetch(doc["text"]):
-                #     # self.db.firstFilterSearch.insert(doc)
-                #     firstCount+=1
-                if filters.findIfDiagnostic(doc["text"]):
-                    # self.db.secondFilterSearch.insert(doc)
-                    secondCount += 1
-            print firstCount, secondCount
+            listText = []
+            count = 0
+            for doc in self.db[collection].find({field: {'$exists': True}}):
+                listText.append(doc[field])
+                count+=1
+                if count == 50:
+                    break
+            return listText
+
 
         except Exception as e:
             print "Iterating data failied", e
@@ -108,24 +101,24 @@ class dbOperations(object):
             countNone = 0
             for doc in self.db[collection].find({'utc_offset': {'$exists': False}}):
                 tweetId = doc["tweet_id"]
-                countAll +=1
+                countAll += 1
                 print countAll
                 tweet = self.twitterApiAuth2.statuses.show(id=tweetId)
                 if tweet == 1:
-                    countNone+=1
-                    print "count None" ,countNone
+                    countNone += 1
+                    print "count None", countNone
                     pass
                 else:
-                    self.db[collection].update({'_id': ObjectId(doc["_id"])},  { '$set': { 'utc_offset':tweet["user"]["utc_offset"],
-                                                                                           'coordinates':tweet["coordinates"],
-                                                                                           'place': tweet["place"]}})
+                    self.db[collection].update({'_id': ObjectId(doc["_id"])},
+                                               {'$set': {'utc_offset': tweet["user"]["utc_offset"],
+                                                         'coordinates': tweet["coordinates"],
+                                                         'place': tweet["place"]}})
             print countAll, countNone
 
         except Exception as e:
             print e
 
 
-# print tweet["user"]["utc_offset"]
+        # print tweet["user"]["utc_offset"]
         # time.sleep(2)
         # self.db[collection].update({'_id': ObjectId(doc["_id"])},  { '$set': { "utc_offset":tweet["user"]["utc_offset"]}},upsert=False)
-

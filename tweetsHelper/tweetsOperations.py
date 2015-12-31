@@ -100,7 +100,7 @@ def remove_special_unicode(text):
 
 def analyseText(tweet):
     text = ''
-    text = remove_emoji(tweet)
+    # text = remove_emoji(tweet)
     text = objectRemoval(tweet)
     return text
 
