@@ -22,5 +22,7 @@
 dump.rdb
 /backUpDatabase/*
 /twitter_nlp-master/*
+/TweeboParser/*
+
 
 

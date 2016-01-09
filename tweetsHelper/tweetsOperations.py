@@ -5,6 +5,7 @@ from nltk.tokenize import RegexpTokenizer
 from nltk.tokenize import TweetTokenizer
 import langid
 from nltk.parse import stanford
+from nltk.parse import dependencygraph
 from nltk import wordpunct_tokenize
 from nltk.corpus import stopwords
 import os
@@ -12,6 +13,9 @@ from enchant.checker import SpellChecker
 from enchant.tokenize import EmailFilter, URLFilter
 import re
 from unidecode import unidecode
+
+
+# import edu.stanford.nlp.trees.semgraph.SemanticGraph
 
 
 def lexical_diversity(text):
@@ -205,6 +209,3 @@ def getSearchTermsFromFile(fileName):
 #     dependencies = self.parser.parseToStanfordDependencies("Mladen is a good guy.")
 #     return dependencies
 
-def dependencyTree(self, tweet):
-    parser = stanford.StanfordDependencyParser(model_path="/home/mladen/TextMiningTwitter/data/englishPCFG.ser.gz")
-    print [parse.tree() for parse in parser.raw_parse(tweet)]
