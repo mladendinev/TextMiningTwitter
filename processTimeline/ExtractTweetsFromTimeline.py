@@ -26,43 +26,51 @@ class ExctractTweetsFromTimeline(object):
         listIds = []
         beforeDiagCount = 0
         maxIdBefore = diagId - 1
+        stop = 0
         while beforeDiagCount < 3200:
             tweets = self.twitterApiAuth.user_timeline(user_id=userId, max_id=maxIdBefore, count=self.count)
-            print len(tweets)
             if len(tweets) == 0:
                 print "End of timeline"
                 break
-
-            for tweet in tweets:
-                beforeDiagCount += 1
-                listIds.append(tweet["id"])
-                if minLimit <= self.format_date(tweet["created_at"]) <= maxLimit:
-                    print tweet["text"]
-                    print tweet["created_at"]
-                else:
-                   print "No more tweets to fetch within this range"
-                   break
-            maxIdBefore = min(listIds)
+            if stop == 0:
+                for tweet in tweets:
+                    beforeDiagCount += 1
+                    listIds.append(tweet["id"])
+                    if minLimit <= self.format_date(tweet["created_at"]) <= maxLimit:
+                        print tweet["text"]
+                        print tweet["created_at"]
+                    else:
+                        print "No more tweets to fetch within this range"
+                        stop = 1
+                        break
+                maxIdBefore = min(listIds)
+            else:
+                break
 
     def findTweetsAfterDiagnosis(self, diagId, userId, minLimit, maxLimit):
         sinceId = diagId
         listIds = []
         afterDiagCount = 0
+        stop = 0
         while afterDiagCount < 3200:
             tweets = self.twitterApiAuth.user_timeline(user_id=userId, since_id=sinceId, count=self.count)
             if len(tweets) == 0:
                 print "End of timeline"
                 break
-
-            for tweet in tweets:
-                afterDiagCount += 1
-                listIds.append(tweet["id"])
-                if minLimit <= self.format_date(tweet["created_at"]) <= maxLimit:
-                    print tweet["text"]
-                    print tweet["created_at"]
-                else:
-                   print "opii"
-            sinceId = max(listIds)
+            if stop == 0:
+                for tweet in tweets:
+                    afterDiagCount += 1
+                    listIds.append(tweet["id"])
+                    if minLimit <= self.format_date(tweet["created_at"]) <= maxLimit:
+                       print tweet["text"]
+                       print tweet["created_at"]
+                    else:
+                       print "No more tweets to fetch within this range"
+                       stop = 1
+                       break
+                sinceId = max(listIds)
+            else:
+                break
 
     def getTweetsFromTimeline(self, tweet):
         diagnosticTweetId = tweet["tweet_id"]
@@ -70,13 +78,17 @@ class ExctractTweetsFromTimeline(object):
         diagnosticDate = tweet["created_at"]
         diagnosticTweet = tweet["text"]
         timeOffSet = tweet["utc_offset"]
-        diagnosticDate = self.format_date(diagnosticDate)
+        formatDiagnosticDate = self.format_date(diagnosticDate)
 
         timeframe = timedelta(days=48)
-        maxLimit = diagnosticDate + timeframe
-        minLimit = diagnosticDate - timeframe
-        self.findTweetsBeforeDiagnosis(diagnosticTweetId, userId, minLimit, maxLimit)
-
+        maxLimit = formatDiagnosticDate + timeframe
+        minLimit = formatDiagnosticDate - timeframe
+        print "Tweets before the diagnosis"
+        self.findTweetsBeforeDiagnosis(diagnosticTweetId, userId, minLimit, formatDiagnosticDate)
+        print "Tweets afrer the diagnosis"
+        self.findTweetsAfterDiagnosis(diagnosticTweetId, userId, formatDiagnosticDate, maxLimit)
+        print "Local time of diagnostic tweet"
+        print self.calculate_localtime(diagnosticDate,timeOffSet)
 
 if __name__ == '__main__':
     print "Extracting timeline tweets"
