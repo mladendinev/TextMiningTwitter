@@ -90,11 +90,16 @@ def checkSpelling(tweet):
 
 
 def objectRemoval(tweet):
-    tweet = re.sub('(http://([^\s]+))', '', tweet)
-    tweet = re.sub('(https://([^\s]+))', '', tweet)
-    tweet = re.sub(r'RT\s+(@[^\s]+)\s*\:?', '', tweet)
-    tweet = re.sub(r'(@[^\s]+)', '', tweet)
-    tweet = re.sub(r'(#([^\s]+))', '', tweet)
+
+    #Replace unnecessary string "objects" from the tweets
+    tweet = re.sub('(http://([^\s]+))','', tweet)
+    tweet = re.sub('(https://([^\s]+))','', tweet)
+    tweet = re.sub(r'RT\s+(@[^\s]+)\s*\:?','', tweet)
+    tweet = re.sub(r'(@[^\s]+)','', tweet)
+    tweet = re.sub(r'(#([^\s]+))','', tweet)
+
+    # Fixing extra whitespaces before and after words
+    tweet =tweet.strip()
     return tweet
 
 def remove_special_unicode(text):
@@ -109,6 +114,7 @@ def analyseText(tweet):
     return text
 
 
+#Remove emoji from tweets
 def remove_emoji(tweet):
     if isinstance(tweet, str):
         tweet = tweet.decode("utf-8", "ignore")
@@ -173,6 +179,8 @@ def correct_punctuation(text, first_capital=True):
         result = lowercase_first(result)
     result = result.strip()
     return result
+
+
 
 def match_similar(tweets, against, min_ratio=0.95):
     for i in xrange(len(tweets)):

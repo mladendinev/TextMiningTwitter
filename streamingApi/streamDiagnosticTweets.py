@@ -58,6 +58,8 @@ class CustomStreamListener(StreamListener):
 
     def on_error(self, status_code):
         print >> sys.stderr, 'Encountered error with status code:', status_code
+        if (status_code == 420):
+            time.sleep(900)
         return True  # Don't kill the stream
 
     def on_exception(self, exception):
@@ -74,6 +76,6 @@ auth = bum.tweepyAuth()
 sapi = Stream(auth, CustomStreamListener())
 try:
     sapi.filter(track=filter)
-except:
-    print "error"
+except Exception as e:
+    print "Error thrown", e
     sapi.disconnect()

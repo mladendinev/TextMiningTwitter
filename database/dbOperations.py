@@ -3,6 +3,10 @@
 import pymongo
 from auth import Authentication
 from bson.objectid import ObjectId
+import json
+from tweetsHelper import tweetsOperations
+import codecs
+
 
 class dbOperations(object):
     def __init__(self):
@@ -86,7 +90,7 @@ class dbOperations(object):
             count = 0
             for doc in self.db[collection].find({field: {'$exists': True}}):
                 listText.append(doc[field])
-                count+=1
+                count += 1
                 if count == 50:
                     break
             return listText
@@ -95,7 +99,7 @@ class dbOperations(object):
         except Exception as e:
             print "Iterating data failied", e
 
-    def updateDetails(self, collection):
+    def updateMissingFields(self, collection):
         try:
             countAll = 0
             countNone = 0
@@ -118,7 +122,30 @@ class dbOperations(object):
         except Exception as e:
             print e
 
+    def updateDiagnosticStatus(self, collection):
+        try:
+            countAll = 0
+            countNone = 0
+            for doc in self.db[collection].find():
+                countAll += 1
+                self.db[collection].update({'_id': ObjectId(doc["_id"])}, {'$set': {"diagnostic": None}}, upsert=False,
+                                           multi=True)
+            print countAll
 
-        # print tweet["user"]["utc_offset"]
-        # time.sleep(2)
-        # self.db[collection].update({'_id': ObjectId(doc["_id"])},  { '$set': { "utc_offset":tweet["user"]["utc_offset"]}},upsert=False)
+        except Exception as e:
+            print e
+
+    def exportDiagnosticTweets(self, collection):
+        try:
+            with codecs.open('diagnostic_tweets', 'w', 'utf-8') as outfile:
+                seen = set()
+                for doc in self.db[collection].find({'diagnostic': "yes"}):
+                    string = doc['text']
+                    string = string.lower()
+                    if string not in seen:
+                        format = tweetsOperations.remove_emoji(string)
+                        seen.add(format)
+                        outfile.write(format + "\n")
+
+        except Exception as e:
+            print "Can't export diagnostic tweets", e

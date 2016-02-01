@@ -40,5 +40,11 @@ def findSynsets(text):
                print lemma.name()
         # print "hypernym", wn.synset('iodine.n.01').hypernyms()
 
-def findSimilarityInSynsets(text):
- pass
+def findSimilarityInSynsets():
+  # for x in wn.synsets("bank"):
+      # print "X is {} and hypernym is {}".format(x,x.hypernyms())
+
+    print wn.synset('slope.n.01').definition() 
+    print wn.synset('bank.n.01').definition()
+    print wn.synset('bank.n.07').definition()
+
