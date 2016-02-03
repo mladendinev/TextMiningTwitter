@@ -5,7 +5,6 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
 
-
 class textClassifier():
     categories= ['alt.atheism', 'soc.religion.christian', 'comp.graphics', 'sci.med']
     twenty_train =fetch_20newsgroups(subset='train', categories=categories, shuffle=True, random_state=42)
@@ -27,10 +26,6 @@ class textClassifier():
         predicted = clf.predict(X_new_tfidf)
         for doc, category in zip(docs_new, predicted):
             print('%r => %s' % (doc, self.twenty_train.target_names[category]))
-
-
-
-
 
 if __name__ == "__main__":
     import logging
