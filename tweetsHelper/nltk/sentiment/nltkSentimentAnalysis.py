@@ -3,16 +3,21 @@ import sys
 import json
 from multiprocessing import Pool, Manager
 import random
-
+from database import dbOperations
 import requests
 import pymongo
 
 
 def main():
-    db = databaseInstance("diagnosticTweets")
+
+    sleepTweets = dbOperations.dbOperations("local").returnDocsWithSpecificField("sleepTweetsTest","sleepRelated","yes")
+
     collection = []
-    for i in range(0, 10):
-        tweet = db.find().limit(-1).skip(random.randint(0, db.count() - 1)).next()
+    # for i in range(0, 10):
+    #     tweet = db.find().limit(-1).skip(random.randint(0, db.count() - 1)).next()
+    #     collection += [tweet]
+
+    for tweet in sleepTweets:
         collection += [tweet]
 
     enriched_tweets = enrich(collection)
@@ -46,7 +51,7 @@ def get_text_sentiment(tweet, output):
     # Parameter list, containing the data to be enriched
     # print tweet['text']
     parameters = {
-        'text':'Mladen is a nice person'
+        'text': tweet['text']
     }
 
     try:
@@ -63,6 +68,7 @@ def get_text_sentiment(tweet, output):
         return
 
     try:
+
         tweet['sentiment'] = response['label']
         tweet['score'] = response['probability'][response['label']]
         tweet['score'] = 0.
@@ -80,28 +86,15 @@ def get_text_sentiment(tweet, output):
     return
 
 
-def databaseInstance(collection):
-    configFile = "/home/mladen/TextMiningTwitter/configFiles/config.py"
-    config = {}
-    execfile(configFile, config)
-    client = pymongo.MongoClient(
-        'mongodb://' + config["username"] + ':' + config["password"] + '@127.0.0.1')
-    db = client.SearchApiResults
-    # Retrieve (or create, if it doesn't exist) the twitter_db database from Mongo
+def databaseInstance():
+    db= dbOperations.dbOperations("local")
+    return db
 
-    db_tweets = db[collection]
-
-    return db_tweets
 
 
 def store(tweets):
     for tweet in tweets:
-        databaseInstance("ntlk").insert(tweet)
-
-    db_count = databaseInstance("ntlk").count()
-
-    print "Tweets stored in MongoDB! Number of documents in ntlk db: %d" % db_count
-
+        databaseInstance().insertData(tweet,"sentimentSleepTweetsNltk")
     return
 
 
@@ -114,38 +107,38 @@ def print_results():
     print ''
     print ''
 
-    tweets = databaseInstance("ntlk")
-
-    num_positive_tweets = tweets.find({"sentiment": "pos"}).count()
-    num_negative_tweets = tweets.find({"sentiment": "neg"}).count()
-    num_neutral_tweets = tweets.find({"sentiment": "neutral"}).count()
-    num_tweets = tweets.find().count()
-
-    if num_tweets != sum((num_positive_tweets, num_negative_tweets, num_neutral_tweets)):
-        print "Counting problem!"
-        print "Number of tweets (%d) doesn't add up (%d, %d, %d)" % (num_tweets,
-                                                                     num_positive_tweets,
-                                                                     num_negative_tweets,
-                                                                     num_neutral_tweets)
-        sys.exit()
-
-    most_positive_tweet = tweets.find_one({"sentiment": "positive"}, sort=[("score", -1)])
-    most_negative_tweet = tweets.find_one({"sentiment": "negative"}, sort=[("score", 1)])
-
-    mean_results = tweets.aggregate([{"$group": {"_id": "$sentiment", "avgScore": {"$avg": "$score"}}}])
-    mean_results = list(mean_results)
-    print mean_results
-    # avg_pos_score = mean_results[1]['avgScore']
-    # avg_neg_score = mean_results[2]['avgScore']
-
-    print "SENTIMENT BREAKDOWN"
-    print "Number (%%) of positive tweets: %d (%.2f%%)" % (
-        num_positive_tweets, 100 * float(num_positive_tweets) / num_tweets)
-    print "Number (%%) of negative tweets: %d (%.2f%%)" % (
-        num_negative_tweets, 100 * float(num_negative_tweets) / num_tweets)
-    print "Number (%%) of neutral tweets: %d (%.2f%%)" % (
-        num_neutral_tweets, 100 * float(num_neutral_tweets) / num_tweets)
-    print ""
+    # tweets = databaseInstance()
+    #
+    # num_positive_tweets = tweets.find({"sentiment": "pos"}).count()
+    # num_negative_tweets = tweets.find({"sentiment": "neg"}).count()
+    # num_neutral_tweets = tweets.find({"sentiment": "neutral"}).count()
+    # num_tweets = tweets.find().count()
+    #
+    # if num_tweets != sum((num_positive_tweets, num_negative_tweets, num_neutral_tweets)):
+    #     print "Counting problem!"
+    #     print "Number of tweets (%d) doesn't add up (%d, %d, %d)" % (num_tweets,
+    #                                                                  num_positive_tweets,
+    #                                                                  num_negative_tweets,
+    #                                                                  num_neutral_tweets)
+    #     sys.exit()
+    #
+    # most_positive_tweet = tweets.find_one({"sentiment": "positive"}, sort=[("score", -1)])
+    # most_negative_tweet = tweets.find_one({"sentiment": "negative"}, sort=[("score", 1)])
+    #
+    # mean_results = tweets.aggregate([{"$group": {"_id": "$sentiment", "avgScore": {"$avg": "$score"}}}])
+    # mean_results = list(mean_results)
+    # print mean_results
+    # # avg_pos_score = mean_results[1]['avgScore']
+    # # avg_neg_score = mean_results[2]['avgScore']
+    #
+    # print "SENTIMENT BREAKDOWN"
+    # print "Number (%%) of positive tweets: %d (%.2f%%)" % (
+    #     num_positive_tweets, 100 * float(num_positive_tweets) / num_tweets)
+    # print "Number (%%) of negative tweets: %d (%.2f%%)" % (
+    #     num_negative_tweets, 100 * float(num_negative_tweets) / num_tweets)
+    # print "Number (%%) of neutral tweets: %d (%.2f%%)" % (
+    #     num_neutral_tweets, 100 * float(num_neutral_tweets) / num_tweets)
+    # print ""
 
     # print "AVERAGE POSITIVE TWEET SCORE: %f" % float(avg_pos_score)
     # print "AVERAGE NEGATIVE TWEET SCORE: %f" % float(avg_neg_score)

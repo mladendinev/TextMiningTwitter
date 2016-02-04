@@ -99,7 +99,7 @@ def objectRemoval(tweet):
     tweet = re.sub(r'(#([^\s]+))','', tweet)
 
     # Fixing extra whitespaces before and after words
-    tweet =tweet.strip()
+    tweet = tweet.strip()
     return tweet
 
 def remove_special_unicode(text):
