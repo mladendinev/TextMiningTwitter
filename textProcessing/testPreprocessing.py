@@ -1,7 +1,7 @@
 __author__ = 'mladen'
-import tweetsOperations
-import semanticFunc
-import NegationDetection
+import textPreprocessing
+import tfidf
+import negationDetection
 from database import dbOperations
 
 
@@ -10,10 +10,11 @@ class testTweetsOperations():
         text1 = "RT @John Sanchez is the best football player #Arsenal http://arsenal.com/stats"
         text2 = "I love cats"
         text3 = "I wasn't diagnosed with schizofrenia, I wasn't sick"
-        text4 = "Wrongly diagnosed with psychotic disorder"
-        tweetsOps = tweetsOperations
-        negation = NegationDetection
-        extract = semanticFunc
+        text4 = "Wrongly diagnosed with psychotic disorder btw"
+        test = textPreprocessing
+        negation = negationDetection
+        extract = tfidf
+        test.replaceAbbreviation(text4)
         # listTweets = dbOperations.dbOperations().returnField("diagnosticTweets","text")
         # diagnosticTweets = dbOperations.dbOperations("local").updateCollection("sleepTweetsTest", "sleepRelated", None)
         # negation.negationDetection(text4)

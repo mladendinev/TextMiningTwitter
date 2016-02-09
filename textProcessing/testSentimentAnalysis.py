@@ -4,7 +4,7 @@ from nltk.classify import NaiveBayesClassifier
 from nltk.corpus import movie_reviews
 
 
-class sentimentAnalysis(object):
+class testSentimentAnalysis(object):
     def __init__(self):
         self.negids = movie_reviews.fileids('neg')
         self.posids = movie_reviews.fileids('pos')
@@ -20,7 +20,7 @@ class sentimentAnalysis(object):
 
 
 if __name__ == "__main__":
-        sentiment =  sentimentAnalysis()
+        sentiment =  testSentimentAnalysis()
         trainfeats = sentiment.negfeats[:sentiment.negcutoff] + sentiment.posfeats[:sentiment.poscutoff]
         testfeats = sentiment.negfeats[sentiment.negcutoff:] + sentiment.posfeats[sentiment.poscutoff:]
         print 'train on %d instances, test on %d instances' % (len(trainfeats), len(testfeats))

@@ -2,8 +2,9 @@
 __author__ = 'mladen'
 from nltk.corpus import sentiwordnet
 from nltk.corpus import wordnet as wn
-import semanticFunc
+import tfidf
 from nltk.parse import stanford
+import textPreprocessing
 
 
 def findAllIndexes(list, num):
@@ -21,7 +22,6 @@ def negationDetection(tweet):
     print relations
     if "neg" in relations:
         negation = findAllIndexes(relations, 'neg')
-        # print negation
         for index in negation:
             # print tree[index][0]
             if len(set(verbTags) & set(tree[index][0])) > 0 or len(set(verbTags) & set(tree[index][1])) > 0:
@@ -34,7 +34,7 @@ def encodeTupple(list):
 
 
 def findSynsets(text):
-    tokens = semanticFunc.tokenizeText(text)
+    tokens = textPreprocessing.tokenizeText(text)
     for token in tokens:
         for synset in wn.synsets(token):
             for lemma in synset.lemmas():
@@ -43,9 +43,5 @@ def findSynsets(text):
 
 
 def findSimilarityInSynsets():
-    # for x in wn.synsets("bank"):
-    # print "X is {} and hypernym is {}".format(x,x.hypernyms())
-
-    print wn.synset('slope.n.01').definition()
-    print wn.synset('bank.n.01').definition()
-    print wn.synset('bank.n.07').definition()
+    for x in wn.synsets("bank"):
+       print "X is {} and hypernym is {}".format(x,x.hypernyms())

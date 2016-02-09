@@ -1,5 +1,6 @@
 __author__ = 'mladen'
-from tweetsHelper import tweetsOperations
+from textProcessing import textPreprocessing
+from textProcessing import textExtractor
 
 # Radu's methods for searching diagnostic tweets
 def findIfDiagnosticFetch(tweet):
@@ -13,8 +14,8 @@ def findIfDiagnosticFetch(tweet):
 def findIfContainsMed(tweet):
     typicalMedsFile = "/home/mladen/TextMiningTwitter/word_lists/typicalmeds.txt"
     atypicalMedsFile = "/home/mladen/TextMiningTwitter/word_lists/atypicalmeds.txt"
-    typicalMeds = tweetsOperations.getSearchTermsFromFile(typicalMedsFile)
-    atypicalMeds = tweetsOperations.getSearchTermsFromFile(atypicalMedsFile)
+    typicalMeds = textExtractor.getTerms(typicalMedsFile)
+    atypicalMeds = textExtractor.getTerms(atypicalMedsFile)
 
     for item in atypicalMeds:
         if item.lower() in tweet.lower():
