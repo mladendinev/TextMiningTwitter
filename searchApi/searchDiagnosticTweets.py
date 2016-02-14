@@ -9,13 +9,14 @@ from celery import Celery
 import twitter
 
 from auth.Authentication import Authentication
-from tweetsHelper import tweetsOperations
+from textProcessing import textPreprocessing
 from database import dbOperations
+from textProcessing import textExtractor
 
 count = 30
 twitterApiAuth = Authentication().twitterAuth()
 disorderListFile = "/home/mladen/TextMiningTwitter/word_lists/disorder_list.txt"
-wordDictionary = tweetsOperations.getSearchTermsFromFile(disorderListFile)
+wordDictionary = textExtractor.getTerms(disorderListFile)
 
 app = Celery('tasks')
 app.config_from_object('celeryconfig')
@@ -43,13 +44,13 @@ def requestNewDiagnosticTweets(query, count, sinceId, maxId):
 @app.task
 def fetchDiagnosticTweets():
     logger.info("Fetching tweets")
-    tweetValidator = tweetsOperations.validators
-    dbHelper = dbOperations
+    tweetValidator = textPreprocessing.validators
+    dbHelper = dbOperations.dbOperations("local")
 
-    if dbHelper.dbOperations().countTweetsInDatabase("diagnosticTweets") == 0:
+    if dbHelper.countTweetsInDatabase("diagnosticTweets") == 0:
         numbIter = 1
     else:
-        numbIter = dbOperations.dbOperations().returnLastIteration("diagnosticTweets")
+        numbIter = dbHelper.returnLastIteration("diagnosticTweets")
         numbIter = numbIter + 1
 
     for keyword in wordDictionary:
@@ -60,12 +61,11 @@ def fetchDiagnosticTweets():
         listIds = []
         numbValidTweets = 0
         print "Loop starts"
-        text = keyword.rstrip('\n')
         while countTweets < 120:
             try:
                 print ("Number of tweets"), countTweets
-                sinceId = dbOperations.dbOperations().findElementInCollection("queries", {"query": text})["since_id"]
-                tweets = requestNewDiagnosticTweets(text, count, sinceId, maxId)
+                sinceId = dbHelper.findElementInCollection("queries", {"query": keyword})["since_id"]
+                tweets = requestNewDiagnosticTweets(keyword, count, sinceId, maxId)
                 time.sleep(1)
                 # print len(tweets)
                 if len(tweets["statuses"]) == 0:
@@ -75,7 +75,7 @@ def fetchDiagnosticTweets():
                     else:
                         sinceId = max(listIds)
                         print "Update since id", sinceId
-                        dbOperations.dbOperations().updateDocumnet("queries", {"query": text},
+                        dbHelper.updateDocumnet("queries", {"query": keyword},
                                                            {'$set': {'since_id': long(sinceId)}})
                         print 'Reached end of stack'
                         break
@@ -85,22 +85,18 @@ def fetchDiagnosticTweets():
                     countTweets += 1
                     listIds.append(int(tweet["id"]))
                     searchTweet = {"tweet_id": long(str(tweet["id"]))}
-                    if dbOperations.dbOperations().findElementInCollection("sleepTweets", searchTweet) == None:
+                    if dbHelper.findElementInCollection("diagnosticTweets", searchTweet) == None:
                         if tweetValidator["Links"](tweet["text"]) or tweetValidator["Retweet"](tweet["text"]) or not \
                                 tweetValidator["Language"](tweet["text"]):
                             print "invalid"
                         else:
-
-                            # if tweetDiseaseChecker.findIfDiagnosticFetch(tweet["text"],
-                            #                                              keyword) or tweetDiseaseChecker.findIfContainsMed(
-                            #         tweet["text"], keyword):
                             saveDataToJson = {'text': tweet["text"] , "tweet_id": tweet["id"], 'geo': tweet["geo"],
                                               'iteration': numbIter,
                                               'userId': tweet["user"]["id"], 'created_at': tweet["created_at"],
                                               'time_zone': tweet["user"]["time_zone"], "utc_offset":tweet["user"]["utc_offset"],
                                               'place': tweet["place"],
                                               'coordinates': tweet["coordinates"]}
-                            dbOperations.dbOperations().insertData(saveDataToJson, "diagnosticTweets")
+                            dbHelper.insertData(saveDataToJson, "diagnosticTweets")
                             numbValidTweets += 1
                             print "Stored valid tweet"
                 maxId = min(listIds) -1

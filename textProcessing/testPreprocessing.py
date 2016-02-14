@@ -3,18 +3,20 @@ import textPreprocessing
 import tfidf
 import negationDetection
 from database import dbOperations
-
+import filters
 
 class testTweetsOperations():
     if __name__ == "__main__":
         text1 = "RT @John Sanchez is the best football player #Arsenal http://arsenal.com/stats"
         text2 = "I love cats"
         text3 = "I wasn't diagnosed with schizofrenia, I wasn't sick"
-        text4 = "Wrongly diagnosed with psychotic disorder btw"
+        text4 = "Wrongly diagnosed with psychotic disorder btw Latuda ours"
         test = textPreprocessing
         negation = negationDetection
         extract = tfidf
-        test.replaceAbbreviation(text4)
+
+        # test.replaceAbbreviation(text4)
+        # test.lemmatization(text2)
         # listTweets = dbOperations.dbOperations().returnField("diagnosticTweets","text")
         # diagnosticTweets = dbOperations.dbOperations("local").updateCollection("sleepTweetsTest", "sleepRelated", None)
         # negation.negationDetection(text4)
@@ -23,6 +25,8 @@ class testTweetsOperations():
         # negation.findSimilarityInSynsets()
         # print extract.extractEntities(listTweets)
         # print tweetsOperations.analyseText(text1)
+
+        filters.filterPotentialDiagnostic(text4)
 
 
 

@@ -7,7 +7,7 @@ import json
 from tweepy import Stream
 from tweepy.streaming import StreamListener
 import pymongo
-from tweetsHelper import tweetsOperations
+from textProcessing import textPreprocessing
 
 from auth.Authentication import Authentication
 from database import dbOperations as db
@@ -24,13 +24,14 @@ class CustomStreamListener(StreamListener):
         # self.limit = time_limit
         self.db = pymongo.MongoClient().textMiningStream
         self.counter = 0
-        self.tweetValidator = tweetsOperations.validators
+        self.tweetValidator = textPreprocessing.validators
+
 
     def iterationCount(self):
-        if db.dbOperations().countTweetsInDatabase("streamDiagnostic") == 0:
+        if db.dbOperations("local").countTweetsInDatabase("streamDiagnostic") == 0:
             numbIter = 1
         else:
-            numbIter = db.dbOperations().returnLastIteration("streamDiagnostic")
+            numbIter = db.dbOperations("local").returnLastIteration("streamDiagnostic")
             numbIter += 1
         return numbIter
 
@@ -51,7 +52,7 @@ class CustomStreamListener(StreamListener):
                               'userId': dataJson["user"]["id"], 'created_at': dataJson["created_at"],
                               'time_zone': dataJson["user"]["time_zone"], "utc_offset": dataJson["user"]["utc_offset"]}
             print "Stored"
-            db.dbOperations().insertData(saveDataToJson, "streamDiagnostic")
+            db.dbOperations("local").insertData(saveDataToJson, "streamDiagnostic")
 
     def on_status(self, status):
         print status.text

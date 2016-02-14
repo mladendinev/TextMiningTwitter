@@ -5,8 +5,12 @@ def getTerms(fileName):
     # os.path.join('/home/mladen/TextMiningTwitter/word_lists',       )
     try:
         with open(fileName, 'r') as disorderFile:
+            terms=[]
             disorderList = disorderFile.readlines()
-            return disorderList
+            for line in disorderList:
+                line = line.rstrip('\n')
+                terms.append(line)
+            return terms
     except Exception as e:
         print "Failed to read disorders from file because:", e
         raise SystemExit

@@ -3,7 +3,7 @@ import json
 from tweepy.parsers import JSONParser
 import os
 import sys
-from tweetsHelper import tweetsOperations
+from textProcessing import textPreprocessing
 import time
 from database import dbOperations
 
@@ -21,7 +21,7 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 #
 # result =  tweepy.Cursor(api.search,q='Disases',count=10, result_type='mixed').items(10)
 disorderListFile = "/home/mladen/TextMiningTwitter/word_lists/disorder_list.txt"
-wordDictionary = tweetsOperations.getSearchTermsFromFile(disorderListFile)
+wordDictionary = textPreprocessing.getSearchTermsFromFile(disorderListFile)
 
 
 
@@ -65,7 +65,7 @@ def requestNewDiagnosticTweets(query, sinceId, maxId):
 
 
 def fetchDiagnosticTweets():
-    tweetValidator = tweetsOperations.validators
+    tweetValidator = textPreprocessing.validators
     dbHelper = dbOperations
 
     if dbHelper.dbOperations().countTweetsInDatabase("diagnosticTweets") == 0:

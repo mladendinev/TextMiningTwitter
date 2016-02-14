@@ -30,5 +30,5 @@ class sleepTextClassifier():
 if __name__ == "__main__":
     import logging
     logging.basicConfig()
-    textClassifier1 = textClassifier()
+    textClassifier1 = sleepTextClassifier()
     textClassifier1.trainingClassifier()

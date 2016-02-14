@@ -19,12 +19,14 @@ import nltk
 # from enchant.checker.wxSpellCheckerDialog import wxSpellCheckerDialog
 import textExtractor
 import string
+from nltk.stem import WordNetLemmatizer
 
 # import edu.stanford.nlp.trees.semgraph.SemanticGraph
 
 stemmer = nltk.stem.porter.PorterStemmer()
 remove_punctuation_map = dict((ord(char), None) for char in string.punctuation)
 stopwords = stopwords.words('english')
+
 
 def lexical_diversity(text):
     return len(set(text)) / len(text)
@@ -157,18 +159,20 @@ def posTagging(listTweets):
         results.append(CMUTweetTagger.runtagger_parse([tweet]))
     return results
 
+
 def tokenizeText(text):
     # punct = re.compile(r'([^A-Za-z0-9 ])')
     # punct.sub("", text)
     tokens = nltk.word_tokenize(text)
     return tokens
 
+
 # Method using the Porter stemer for tagging each tweet
 def stemming(text):
     stem = []
-    for items in text:
-        stem1.append(stemmer.stem(items))
-    return stem
+    for items in tokenizeText(text):
+        stem.append(stemmer.stem(items))
+    return ' '.join(stem)
 
 
 # Removing the punctuation
@@ -176,16 +180,22 @@ def removePunctuation(text):
     filtered = text.translate(remove_punctuation_map)
     return filtered
 
+
+# Lemamtization
+def lemmatization(text):
+    lemmatizer = nltk.WordNetLemmatizer()
+    lemmas = [lemmatizer.lemmatize(token) for token in tokenizeText(text)]
+    return ' '.join(lemmas)
+
 def replaceAbbreviation(tweet):
     tweet = tweet.lower()
     words = tweet.split()
-    print words
     abbreviationDict = textExtractor.getAbbreviations()
     for token in words:
         if token in abbreviationDict.keys():
             print "Found Abbreviation"
-            tweet = tweet.replace(token,abbreviationDict.get(token))
-    print tweet
+            tweet = tweet.replace(token, abbreviationDict.get(token))
+    return tweet
 # def dependencyTree(self):
 #     dependencies = self.parser.parseToStanfordDependencies("Ivan is a good guy.")
 #     return dependencies

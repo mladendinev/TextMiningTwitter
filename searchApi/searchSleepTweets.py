@@ -1,129 +1,144 @@
 # __author__ = 'mladen'
 import time
 import os
-
+import logging
+import logging.config
 from celery import Celery
 
 from database import dbOperations
-from tweetsHelper import tweetsOperations
+from textProcessing import textPreprocessing
 from auth.Authentication import Authentication
-
-
-
-# # statuses = search_results['statuses']
-#
-# for _ in range(5):
-#     print "Length  of statuses", len(statuses)
-#     try:
-#         next_results = search_results['search_metadata']['next_results']
-#     except KeyError, e:
-#         break
-#
-#         kwargs = dict([kv.split('=') for kv in next_results[1:].split("&")])
-#         search_results = twitter_api.search.tweets(**kwargs)
-#         statuses += search_results['statuses']
+import sys
+import twitter
+from textProcessing import textExtractor
 
 app = Celery('tasks')
 app.config_from_object('celeryconfig')
 
-count = 10
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+sleepPhrases = "/home/mladen/TextMiningTwitter/word_lists/sleepRelatedKeywords.txt"
+wordDictionary = textExtractor.getTerms(sleepPhrases)
+
+count = 5
 twitterApiAuth = Authentication().twitterAuth()  # auth credentials
 
 
 @app.task
-def add(x, y):
-    print "executing"
-    return x + y
+def requestNewSleepTweets(query, count, sinceId, maxId):
+    try:
+        if (maxId != 0):
+            tweets = twitterApiAuth.search.tweets(q=query, count=count, max_id=maxId, since_id=sinceId)
+            time.sleep(3)
+            return tweets
+        else:
+            tweets = twitterApiAuth.search.tweets(q=query, count=count, since_id=sinceId)
+            return tweets
+
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno, e)
+
 
 @app.task
-def requestNewTweets(query, maxId, sinceId):
-    tweets = twitterApiAuth.search.tweets(q=query, count=count, result_type='mixed',max_id = maxId, since_id = sinceId)
-    return tweets
-
-# 660940574858416128
-
-# 660942288437121024
-@app.task
-def runTweets():
-    count = 0
-    maxId = 0
-    tweetsReceived = []
-    read = True
-    numbValidTweets = 0
-    query1 = "insomnia OR sleep issues OR wish i could sleep"
-    query2 = 'sleeping pills OR sleeping'
-    tweetValidator = tweetsOperations.validators
-    global numbIter
-    dbHelper = dbOperations
-
-    if dbHelper.dbOperations().countTweetsInDatabase("sleepTweets") == 0:
-        numbIter = 1
-    else:
-        numbIter = dbOperations.dbOperations().returnLastIteration("sleepTweets")
-        numbIter = numbIter + 1
-
-    while (count < 200):
+def fetchSleepRealtedTweets():
+    for keyword in wordDictionary:
+        print "Searching for" + keyword + "starts"
+        print keyword
+        count = 0
+        maxId = 0
         listIds = []
-        print ("counter", count)
-        try:
-            if read == True:
-                sinceId = dbOperations.dbOperations().findElementInCollection("queries",{"id": 1})["since_id"]
-                tweets = requestNewTweets(query1,maxId,sinceId)
-                read = False
-                time.sleep(3)
+        numbValidTweets = 0
+        sinceId = 0
+        # query1 = "insomnia OR sleep issues OR wish i could sleep"
+        # query2 = 'sleeping pills OR sleeping'
+        tweetValidator = textPreprocessing.validators
+        global numbIter
+        dbHelper = dbOperations.dbOperations("local")
 
-            else:
-                sinceId = dbOperations.dbOperations().findElementInCollection("queries",{"id": 2})["since_id"]
-                print sinceId
-                tweets =requestNewTweets(query2,maxId,sinceId)
-                read = True
-                time.sleep(3)
+        numbIter = dbHelper.returnFieldIteration("sleepTweetsTest", keyword, "iteration")
 
-            for items in tweets["statuses"]:
-                print items["user"]["id"]
-                listIds.append(items["id"])
-                count += 1
-                searchTweet = {"tweet_id" : long(str(items["id"]))}
-                if dbOperations.dbOperations().findElementInCollection("sleepTweets",searchTweet) == None:
-                    print "New element found"
+        if numbIter == None:
+            numbIter = 1
+        else:
+            print "Iteration {} for the key phrase {}".format(numbIter, keyword)
+            numbIter = numbIter + 1
 
-                    tweetsReceived.append(items["text"])
-                    dataJson = {'text': items["text"], "tweet_id": items["id"], 'geo': items["geo"], 'iteration': numbIter,
-                            'userId': items["user"]["id"]}
+        while (count <= 15):
+            try:
+                print ("counter", count)
+                sinceId = dbHelper.findElementInCollection("sleepQueries", {"query": keyword})["since_id"]
+                tweets = requestNewSleepTweets(keyword, count, maxId, sinceId)
 
-                    if tweetValidator["Links"](items["text"]) or tweetValidator["Retweet"](items["text"]) or not \
-                      tweetValidator["Language"](items["text"]):
-                    # print "Invalid Tweets"
-                         pass
+                if len(tweets["statuses"]) == 0:
+                    if (len(listIds) == 0):
+                        print "No new tweets since last time"
+                        break
                     else:
-                         print "Valid tweet"
-                         dbOperations.dbOperations().insertData(dataJson, "sleepTweets")
-                         numbValidTweets += 1
+                        sinceId = max(listIds)
+                        print "Update since id", sinceId
+                        dbHelper.updateDocumnet("sleepQueries", {"query": keyword},
+                                                {'$set': {'since_id': long(sinceId)}})
+                        print 'Reached end of stack'
+                        break
 
-            maxId = min(listIds) - 1
-            sinceId = max(listIds)
-            if read:
-                dbOperations.dbOperations().updateDocumnet("queries",{"id": 1}, {'$set': {'since_id': sinceId}})
-            else:
-                dbOperations.dbOperations().updateDocumnet("queries",{"id": 2}, {'$set': {'since_id': sinceId}})
+                for tweet in tweets["statuses"]:
+                    listIds.append(int(tweet["id"]))
+                    count += 1
+                    if dbHelper.findElementInCollection("sleepTweets", {"userId": tweet["id"]}) == None:
+                        if tweetValidator["Links"](tweet["text"]) or tweetValidator["Retweet"](tweet["text"]) or not \
+                                tweetValidator["Language"](tweet["text"]):
+                            print "Invalid Tweet"
+                        else:
+                            saveDataToJson = {'text': tweet["text"],
+                                              "tweet_id": tweet["id"],
+                                              'geo': tweet["geo"],
+                                              'iteration': numbIter,
+                                              'userId': tweet["user"]["id"],
+                                              'created_at': tweet["created_at"],
+                                              'time_zone': tweet["user"]["time_zone"],
+                                              "utc_offset": tweet["user"]["utc_offset"],
+                                              'place': tweet["place"],
+                                              'coordinates': tweet["coordinates"],
+                                              'search_terms': keyword}
+                            dbHelper.insertData(saveDataToJson, "sleepTweetsTest")
+                            numbValidTweets += 1
+                            print "Stored valid tweet"
 
+                maxId = min(listIds) - 1
+                if count >= 15:
+                    print "I have to update the since id, limit exceeded"
+                    print 'Count', count
+                    sinceId = max(listIds)
+                    dbHelper.updateDocumnet("sleepQueries", {"query": keyword},
+                                            {'$set': {'since_id': long(sinceId)}})
 
-        except Exception as e:
-            print ("Exception searching tweets", e)
-            break
-
-        datapath = '/home/mladen/TextMiningTwitter/data'
-        completeName = os.path.join(datapath, 'statistics' + str(numbIter) + ".txt")
-        f = open(completeName, 'w')
-        f.write("Number of tweets fetched" + " " + str(count))
-        f.write('\n')
-        f.write("Number of valid tweets" + " " + str(numbValidTweets))
-
+            except twitter.api.TwitterHTTPError as e:
+                logger.error("Exception thrown %e", exc_info=True)
 
 
 if __name__ == '__main__':
     print "Searching tweets..."
-    runTweets()
+    fh = logging.FileHandler('/home/mladen/TextMiningTwitter/auth/log/logDiagnostic.log')
+    fh.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    fetchSleepRealtedTweets()
+
+
+# datapath = '/home/mladen/TextMiningTwitter/data'
+# completeName = os.path.join(datapath, 'statistics' + str(numbIter) + ".txt")
+# f = open(completeName, 'w')
+# f.write("Number of tweets fetched" + " " + str(count))
+# f.write('\n')
+# f.write("Number of valid tweets" + " " + str(numbValidTweets))
+#
+# if __name__ == '__main__':
+#     print "Searching tweets..."
+#     runTweets()
 
 # print json.dumps(statuses[0], indent=1)
 

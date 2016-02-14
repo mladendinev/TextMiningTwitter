@@ -12,7 +12,7 @@
 /searchApi/trial.py
 /searchApi/dump.rdb
 /searchApi/temp-18941.rdb
-/tweetsHelper/englishPCFG.ser.gz	
+/textProcessing/englishPCFG.ser.gz
 /configFiles/*
 /word_lists/*
 /auth/*

@@ -1,7 +1,7 @@
 __author__ = 'mladen'
 
 import nltk
-
+import textPreprocessing
 
 class nameEntity():
     def extractNameEntity(self):
@@ -15,7 +15,7 @@ class nameEntity():
         results = []
         for tweet in listTweets:
             # tweet = tweet.encode('utf-8')
-            tweet = self.tokenizeText(tweet)
+            tweet = textPreprocessing.tokenizeText(tweet)
             tag = nltk.pos_tag(tweet)
             results.append(nltk.chunk.ne_chunk(tag))
         return results

@@ -128,9 +128,10 @@ class ExctractTweetsFromTimeline(object):
         diagnosticDate = tweet["created_at"]
         formatDiagnosticDate = self.format_date(diagnosticDate)
 
-        timeframe = timedelta(days=1000)
-        maxLimit = formatDiagnosticDate + timeframe
-        minLimit = formatDiagnosticDate - timeframe
+        timeframeBefore = timedelta(days=48)
+        timeframeAfter = timedelta(days=365)
+        maxLimit = formatDiagnosticDate + timeframeAfter
+        minLimit = formatDiagnosticDate - timeframeBefore
         print "Tweets before the diagnosis"
         self.findTweetsBeforeDiagnosis(diagnosticTweetId, userId, minLimit, formatDiagnosticDate)
         print "Tweets afrer the diagnosis"

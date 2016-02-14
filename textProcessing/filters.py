@@ -1,8 +1,39 @@
 __author__ = 'mladen'
-from textProcessing import textPreprocessing
+from textProcessing import textPreprocessing as prs
 from textProcessing import textExtractor
 
-# Radu's methods for searching diagnostic tweets
+typicalMedsFile = "/home/mladen/TextMiningTwitter/word_lists/typicalmeds.txt"
+atypicalMedsFile = "/home/mladen/TextMiningTwitter/word_lists/atypicalmeds.txt"
+typicalMeds = textExtractor.getTerms(typicalMedsFile)
+atypicalMeds = textExtractor.getTerms(atypicalMedsFile)
+
+def compose (*functions):
+    def inner(arg):
+        for f in reversed(functions):
+            arg = f(arg)
+        return arg
+    return inner
+
+
+def filterPotentialDiagnostic(tweet):
+    textPreprocessing = compose(prs.replaceAbbreviation,prs.stemming)
+    possessivePronouns = ["i", "my", "mine","we", "me", "u", "our"]
+    potenatialVerbs = ["got", "diagnos", "suffer", "suffer", "have", "ill"]
+
+    if len(set(textPreprocessing(tweet).split()) & set(potenatialVerbs)) > 0 :
+        print 'potential tweet'
+    elif len(set(textPreprocessing(tweet).split()) & set(possessivePronouns)) > 0 :
+        print 'potential tweet'
+    elif findIfContainsMed(tweet):
+        print 'potential tweet'
+    else:
+        print 'disregard'
+
+
+    # if ((findIfContainsMed(tweet)[0] or findIfContainsMed(tweet)[1]) or potenatialVerbs or possessivePronouns:
+    #     pass
+
+
 def findIfDiagnosticFetch(tweet):
     # check if certain keywords are in the piece of text
     verblist = ["have", "got", "diagnosed with", "suffering from"]
@@ -11,32 +42,30 @@ def findIfDiagnosticFetch(tweet):
             # self._diagnosedTweets.append(tweet)
             return True
 
-def findIfContainsMed(tweet):
-    typicalMedsFile = "/home/mladen/TextMiningTwitter/word_lists/typicalmeds.txt"
-    atypicalMedsFile = "/home/mladen/TextMiningTwitter/word_lists/atypicalmeds.txt"
-    typicalMeds = textExtractor.getTerms(typicalMedsFile)
-    atypicalMeds = textExtractor.getTerms(atypicalMedsFile)
 
+
+def findIfContainsMed(tweet):
+    check1 = None
+    check2 = None
     for item in atypicalMeds:
         if item.lower() in tweet.lower():
-            # self._tweetsWithAtypicalMeds.append(disease + " : " + tweet)
-            return True
-
+            check1 = True
     for item in typicalMeds:
-        if item.lower() in tweet.lower() and tweet:
-            # self._tweetsWithTypicalMeds.append(disease + " : " + tweet)
-            return True
+        if item.lower() in tweet.lower():
+            check2 = True
+    return check1, check2
 
 
-
+# Radu's method for searching diagnostic tweets
 def findIfDiagnostic(tweet):
     suspectedDisease = ""
-    listOfDiseases = ["schizophrenia","schizophreniform", "schizo affective","shiz","psychosis","delusional disorder",
-                      "shared psychotic","foile a deux", "induced psychosis", "psychotic disorder"]
+    listOfDiseases = ["schizophrenia", "schizophreniform", "schizo affective", "shiz", "psychosis",
+                      "delusional disorder",
+                      "shared psychotic", "foile a deux", "induced psychosis", "psychotic disorder"]
     for disease in listOfDiseases:
-         if disease in tweet.lower():
-             suspectedDisease = disease
-             print suspectedDisease
+        if disease in tweet.lower():
+            suspectedDisease = disease
+            print suspectedDisease
 
     personalPronouns = ["i", "we", "me", "us", "our", "ours"]
     # check if certain keywords are in the piece of text
