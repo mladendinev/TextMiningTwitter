@@ -1,0 +1,23 @@
+
+module mypol 1.0;
+
+require {
+	type user_tmp_t;
+	type default_t;
+	type mongod_t;
+	class sock_file unlink;
+	class dir read;
+	class file { write ioctl read open getattr append };
+}
+
+#============= mongod_t ==============
+
+#!!!! This avc is allowed in the current policy
+allow mongod_t default_t:dir read;
+allow mongod_t default_t:file write;
+
+#!!!! This avc is allowed in the current policy
+allow mongod_t default_t:file { read ioctl open getattr append };
+
+#!!!! This avc is allowed in the current policy
+allow mongod_t user_tmp_t:sock_file unlink;
