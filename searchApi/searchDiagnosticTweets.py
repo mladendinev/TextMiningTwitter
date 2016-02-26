@@ -86,8 +86,8 @@ def fetchDiagnosticTweets():
                     listIds.append(int(tweet["id"]))
                     searchTweet = {"tweet_id": long(str(tweet["id"]))}
                     if dbHelper.findElementInCollection("diagnosticTweets", searchTweet) == None:
-                        if tweetValidator["Links"](tweet["text"]) or tweetValidator["Retweet"](tweet["text"]) or not \
-                                tweetValidator["Language"](tweet["text"]):
+                        if (tweetValidator["Links"](tweet["text"]) or tweetValidator["Retweet"](tweet["text"]) or not \
+                                tweetValidator["Language"](tweet["text"])) is True:
                             print "invalid"
                         else:
                             saveDataToJson = {'text': tweet["text"] , "tweet_id": tweet["id"], 'geo': tweet["geo"],

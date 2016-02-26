@@ -65,7 +65,7 @@ class ExctractTweetsFromTimeline(object):
                         else:
                             print "No time offset or timezone information in the tweet"
 
-                        self.dbHelper.insertData(tweetData, "tweetsFromTimeline")
+                        self.dbHelper.insertData(tweetData, "timelineDiagnosedUsers")
                     else:
                         print "No more tweets to fetch within this range"
                         stop = 1
@@ -113,7 +113,7 @@ class ExctractTweetsFromTimeline(object):
                             print "No time offset or timezone information in the tweet"
 
                         # Store data to database
-                        self.dbHelper.insertData(tweetData, "tweetsFromTimeline")
+                        self.dbHelper.insertData(tweetData, "timelineDiagnosedUsers")
                     else:
                         print "No more tweets to fetch within this range"
                         stop = 1
@@ -129,7 +129,7 @@ class ExctractTweetsFromTimeline(object):
         formatDiagnosticDate = self.format_date(diagnosticDate)
 
         timeframeBefore = timedelta(days=48)
-        timeframeAfter = timedelta(days=365)
+        timeframeAfter = timedelta(days=1000)
         maxLimit = formatDiagnosticDate + timeframeAfter
         minLimit = formatDiagnosticDate - timeframeBefore
         print "Tweets before the diagnosis"
@@ -141,8 +141,10 @@ class ExctractTweetsFromTimeline(object):
 if __name__ == '__main__':
     print "Extracting timeline tweets"
     # tweet = dbOperations.dbOperations("local").findElementInCollection("diagnosticTweets", {"tweet_id": 658906748997255169})
-    diagnosticTweets = dbOperations.dbOperations("local").returnDocsWithSpecificField('diagnosticTweets', "diagnostic",
-                                                                                      'yes')
-    for tweet in diagnosticTweets:
+    rohanDiagnostic = dbOperations.dbOperations("remote").returnDocsWithSpecificField('diagnosticTweets', "user.rmorris.label",
+                                                                                      'positive')
+    natalieDiagnostic = dbOperations.dbOperations("remote").returnDocsWithSpecificField('diagnosticTweets', "user.nberry.label",
+                                                                                       'positive')
+    allDiagnostic = natalieDiagnostic +natalieDiagnostic
+    for tweet in allDiagnostic:
         ExctractTweetsFromTimeline().getTweetsFromTimeline(tweet)
-        break

@@ -193,7 +193,6 @@ def replaceAbbreviation(tweet):
     abbreviationDict = textExtractor.getAbbreviations()
     for token in words:
         if token in abbreviationDict.keys():
-            print "Found Abbreviation"
             tweet = tweet.replace(token, abbreviationDict.get(token))
     return tweet
 # def dependencyTree(self):

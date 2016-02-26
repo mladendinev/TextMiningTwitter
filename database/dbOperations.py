@@ -6,6 +6,7 @@ from bson.objectid import ObjectId
 import json
 from textProcessing import textPreprocessing
 import codecs
+from textProcessing import filters
 
 
 class dbOperations(object):
@@ -96,10 +97,10 @@ class dbOperations(object):
         except Exception as e:
             print "Iterating data failied", e
 
-    def deleteField(self, collection, listObjects):
+    def deleteDocument(self, collection, listObjects):
         try:
             for objectId in listObjects:
-                self.db[collection].remove({"_id": ObjectId(objectId)}, True)
+                self.db[collection].remove({"$and": [{"_id": ObjectId(objectId)}, {"user": {"$exists": False}}]}, True)
         except Exception as e:
             print "Iterating data failied", e
 
@@ -139,17 +140,25 @@ class dbOperations(object):
         except Exception as e:
             print e
 
-    def exportDiagnosticTweets(self, collection):
+    def exportPositiveDiagnosticTweets(self, collection):
         try:
-            with codecs.open('diagnostic_tweets', 'w', 'utf-8') as outfile:
+            with codecs.open('diagnostic_tweets', 'a', 'utf-8') as outfile:
                 seen = set()
-                for doc in self.db[collection].find({'diagnostic': "yes"}):
-                    string = doc['text']
-                    string = string.lower()
-                    if string not in seen:
-                        format = textPreprocessing.remove_emoji(string)
-                        seen.add(format)
-                        outfile.write(format + "\n")
+                users = ['rmorris', 'mladen', 'nberry']
+
+                for user in users:
+                    query = 'user.' + user + '.label'
+                    print query
+                    for doc in self.db[collection].find({query: "positive"}):
+                        text = doc['text'].replace("\n", ' ')
+
+                        # string = list(doc['text'])
+                        # for i,char in string:
+                        #     if string[i] == "\n":
+                        #         string[i] = " "
+                        # tweet=''.join(string)
+                        tweet = text.lower()
+                        outfile.write(tweet + "\n")
 
         except Exception as e:
             print "Can't export diagnostic tweets", e
@@ -169,15 +178,26 @@ class dbOperations(object):
             collumns.append({'text': doc['text'], "sentiment": doc['sentiment'], 'label': value})
         return collumns
 
-    def returnDocsWithSpecificField(self, collection,field, value):
+    def returnDocsWithSpecificField(self, collection, field, value):
         dictTweets = []
         for tweet in self.db[collection].find({field: value}):
-            # saveDataToJson = {'text': tweet["text"],
-            #                   "tweet_id": tweet["tweet_id"],
-            #                   'userId': tweet["userId"],
-            #                   'created_at': tweet["created_at"],
-            #                   'time_zone': tweet["time_zone"],
-            #                   "utc_offset": tweet["utc_offset"],
-            #                   'coordinates': tweet["coordinates"]}
             dictTweets.append(tweet)
         return dictTweets
+
+    def updateDiagnosticPotentialTweets(self, collection):
+        for tweet in self.db[collection].find():
+            if filters.filterPotentialDiagnostic(tweet["text"]):
+                self.db[collection].update({'_id': ObjectId(tweet["_id"])}, {'$set': {"potentialDiagnostic": "yes"}},
+                                           upsert=False,
+                                           multi=False)
+
+    def exportRohanTweets(self, collection):
+
+        all = []
+        for tweet in self.db[collection].find(
+                {"$and": [{"user.rmorris": {"$exists": True}}, {"user.nberry": {"$exists": False}}]}):
+            tweets = []
+            tweets.append(tweet['text'])
+            tweets.append(tweet['user']['rmorris']['label'])
+            all.append(tweets)
+        return all

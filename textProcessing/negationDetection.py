@@ -19,7 +19,6 @@ def negationDetection(tweet):
     print tree
     print "-------------------------------------------"
     relations = [str(x[1]) for x in tree]
-    print relations
     if "neg" in relations:
         negation = findAllIndexes(relations, 'neg')
         for index in negation:
