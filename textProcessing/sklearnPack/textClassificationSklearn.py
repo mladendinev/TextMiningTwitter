@@ -9,27 +9,13 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.cross_validation import KFold
 from sklearn.metrics import confusion_matrix, f1_score
 from sklearn.pipeline import Pipeline
+from textProcessing import trainingData
 
 
-
-class textClassificationNltk():
-
-    def getData(self):
-        dbHelper = dbOperations.dbOperations("local")
-
-        # Positive sleep tweets
-        sleepRelated = dbHelper.returnSleepTweets("sleepTweetsTest", "sleepRelated", "yes")
-
-        # Negative sleep tweets
-        nonSleepRelated = dbHelper.returnSleepTweets("sleepTweetsTest", "sleepRelated", "no")
-
-        concatenateList = sleepRelated + nonSleepRelated
-
-        trainingdata = DataFrame(concatenateList)
-        return trainingdata
+class textClassificationSklearn():
 
     def classification(self):
-        trainingdata = self.getData()
+        trainingdata = trainingData.splitDataset()[0] + trainingData.splitDataset()[1]
         trainingdata = trainingdata.reindex(numpy.random.permutation(trainingdata.index))
 
         count_vectorizer = CountVectorizer()
@@ -76,6 +62,6 @@ class textClassificationNltk():
 
             # print(metrics.classification_report(twenty_test.target, predicted,target_names=twenty_test.target_names))
 if __name__ == '__main__':
-    test = textClassificationNltk()
+    test = textClassificationNaive()
     # test.classification()
     test.crossFoldValidation()
