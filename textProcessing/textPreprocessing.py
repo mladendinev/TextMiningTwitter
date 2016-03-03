@@ -16,6 +16,10 @@ from unidecode import unidecode
 from collections import Counter
 from history import CMUTweetTagger
 import nltk
+from nltk.tag.stanford import StanfordNERTagger
+
+
+
 # from enchant.checker.wxSpellCheckerDialog import wxSpellCheckerDialog
 import textExtractor
 import string
@@ -25,7 +29,15 @@ from nltk.stem import WordNetLemmatizer
 
 stemmer = nltk.stem.porter.PorterStemmer()
 remove_punctuation_map = dict((ord(char), None) for char in string.punctuation)
-stopwords = stopwords.words('english')
+cacheStopwords = stopwords.words('english')
+
+
+def duplicates(seq):
+    seen = set()
+    seen_add = seen.add
+    seen_twice = set(x for x in seq if x in seen or seen_add(x))
+    # turn the set into a list (as requested)
+    return list(seen_twice)
 
 
 def lexical_diversity(text):
@@ -33,8 +45,7 @@ def lexical_diversity(text):
 
 
 def content_fraction(text):
-    stopwordsInCorpus = stopwords.words('english')
-    content = [w for w in text if w.lower() not in stopwordsInCorpus]
+    content = [w for w in text if w.lower() not in cacheStopwords]
     return len(content) / len(text)
 
 
@@ -114,6 +125,7 @@ def objectRemoval(tweet):
     tweet = re.sub(r'(#([^\s]+))', '', tweet)
 
     # Fixing extra whitespaces before and after words
+
     tweet = tweet.strip()
     return tweet
 
@@ -121,7 +133,7 @@ def objectRemoval(tweet):
 def frequencyCounter(text):
     # remove stopwords
     words = tokenizeText(text)
-    words = [word for word in words if word not in stopwords]
+    words = removeStopwords(text)
     words = Counter(words)
     return words
 
@@ -132,11 +144,17 @@ def remove_special_unicode(text):
     return unidecode(text).replace("[?]", "")
 
 
+def removeStopwords(text):
+    text = tokenizeText(text)
+    words = [word for word in text if word not in cacheStopwords]
+    return ' '.join(words)
+
+
 def analyseText(tweet):
     text = ''
-    # text = remove_emoji(tweet)
-    text = objectRemoval(tweet)
-    return text
+    emojiRemove = remove_emoji(tweet)
+    objRemove = objectRemoval(emojiRemove)
+    return objRemove
 
 
 # Remove emoji from tweets
@@ -170,15 +188,16 @@ def tokenizeText(text):
 # Method using the Porter stemer for tagging each tweet
 def stemming(text):
     stem = []
-    for items in tokenizeText(text):
+    for items in text:
         stem.append(stemmer.stem(items))
     return ' '.join(stem)
 
 
 # Removing the punctuation
 def removePunctuation(text):
-    filtered = text.translate(remove_punctuation_map)
-    return filtered
+    print text
+    out = text.translate(remove_punctuation_map)
+    return out
 
 
 # Lemamtization
@@ -186,6 +205,7 @@ def lemmatization(text):
     lemmatizer = nltk.WordNetLemmatizer()
     lemmas = [lemmatizer.lemmatize(token) for token in tokenizeText(text)]
     return ' '.join(lemmas)
+
 
 def replaceAbbreviation(tweet):
     tweet = tweet.lower()
@@ -195,6 +215,74 @@ def replaceAbbreviation(tweet):
         if token in abbreviationDict.keys():
             tweet = tweet.replace(token, abbreviationDict.get(token))
     return tweet
+
+
+def compose(*functions):
+    def inner(arg):
+        for f in reversed(functions):
+            arg = f(arg)
+        return arg
+
+    return inner
+
+
+def normaliseText(tweet):
+    tweet = tweet.lower()
+    tweet= tweet.replace("&amp", "")
+    filterTweet = analyseText(tweet)
+    tweet = replaceAbbreviation(filterTweet)
+    filterTweet = analyseText(tweet)
+    # noPunct = removePunctuation(filterTweet)
+    tokens = tokenizeText(filterTweet)
+    text = []
+    for token in tokens:
+        if token not in cacheStopwords:
+            text.append(stemmer.stem(token))
+    tweet = ' '.join(text)
+    return tweet
+
+    print list
+
+
+def unlabelled_entity_names(text):
+    filterTweet = analyseText(text)
+    text = removePunctuation(filterTweet)
+    data = nltk.word_tokenize(text)
+    tagged = nltk.pos_tag(data)
+    namedEnt = nltk.ne_chunk(tagged, binary=True)
+    entity = []
+    for subtree in namedEnt.subtrees(filter=lambda x: x.label() == 'NE'):
+        entity.append(subtree.leaves())
+    return entity
+
+
+def tagg_tweet(text):
+    text = removePunctuation(text)
+    filterTweet = analyseText(text)
+    st = StanfordNERTagger(
+        '/home/mladen/TextMiningTwitter/stanford-ner-2015-01-30/classifiers/english.all.7class.distsim.crf.ser.gz',
+        '/home/mladen/TextMiningTwitter/stanford-ner-2015-01-30/stanford-ner.jar',
+        encoding='utf-8')
+    tokenized_text = nltk.word_tokenize(filterTweet)
+    classified_text = st.tag(tokenized_text)
+    return classified_text
+
+
+def label_entity(sent):
+    chunks = []
+    first_chunk = []
+
+    for token, tag in sent:
+        if tag != "O":
+            first_chunk.append((token, tag))
+        else:
+            if first_chunk:
+                chunks.append(first_chunk)
+                first_chunk = []
+    if first_chunk:
+        chunks.append(first_chunk)
+    return chunks
+
 # def dependencyTree(self):
 #     dependencies = self.parser.parseToStanfordDependencies("Ivan is a good guy.")
 #     return dependencies

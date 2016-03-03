@@ -16,7 +16,7 @@ def compose(*functions):
     return inner
 
 def filterPotentialDiagnostic(tweet):
-    textPreprocessing = compose(prs.replaceAbbreviation, prs.stemming)
+    textPreprocessing = compose(prs.replaceAbbreviation, prs.stemming, prs.tokenizeText)
     possessivePronouns = ["i", "my", "mine", "we", "me", "u", "our"]
     potenatialVerbs = ["got", "diagnos", "suffer", "suffer", "have", "ill"]
     importantWords = tfidf().testScit()

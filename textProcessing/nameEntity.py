@@ -14,7 +14,6 @@ class nameEntity():
     def extractEntities(self, listTweets):
         results = []
         for tweet in listTweets:
-            # tweet = tweet.encode('utf-8')
             tweet = textPreprocessing.tokenizeText(tweet)
             tag = nltk.pos_tag(tweet)
             results.append(nltk.chunk.ne_chunk(tag))

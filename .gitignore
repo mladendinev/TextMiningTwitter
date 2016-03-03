@@ -23,6 +23,6 @@ dump.rdb
 /backUpDatabase/*
 /twitter_nlp-master/*
 /TweeboParser/*
-
-
+/pyner-master/*
+/stanford-ner-2015-01-30/*
 

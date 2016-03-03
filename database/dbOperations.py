@@ -1,15 +1,20 @@
-# __author__ = 'mladen'
+__author__ = 'mladen'
+
+import json
+import codecs
+from collections import Counter
 
 import pymongo
-from auth import Authentication
 from bson.objectid import ObjectId
-import json
+
+from auth import Authentication
 from textProcessing import textPreprocessing
-import codecs
 from textProcessing import filters
+from textProcessing.informationRetrieval import IR
+from TweetNLP import CMUTweetTagger
 
 
-class dbOperations(object):
+class dbOperations:
     def __init__(self, database):
         try:
             if database == "local":
@@ -108,7 +113,7 @@ class dbOperations(object):
         try:
             countAll = 0
             countNone = 0
-            for doc in self.db[collection].find({'utc_offset': {'$exists': False}}):
+            for doc in self.db[collection].find({'location': {'$exists': False}}):
                 tweetId = doc["tweet_id"]
                 countAll += 1
                 print countAll
@@ -119,13 +124,14 @@ class dbOperations(object):
                     pass
                 else:
                     self.db[collection].update({'_id': ObjectId(doc["_id"])},
-                                               {'$set': {'utc_offset': tweet["user"]["utc_offset"],
-                                                         'coordinates': tweet["coordinates"],
-                                                         'place': tweet["place"]}})
+                                               {'$set': {'location': tweet["user"]["location"]}})
+                    # 'coordinates': tweet["coordinates"],
+                    # 'place': tweet["place"]}})
             print countAll, countNone
 
         except Exception as e:
             print e
+            pass
 
     def updateCollection(self, collection, field, value):
         try:
@@ -148,7 +154,6 @@ class dbOperations(object):
 
                 for user in users:
                     query = 'user.' + user + '.label'
-                    print query
                     for doc in self.db[collection].find({query: "positive"}):
                         text = doc['text'].replace("\n", ' ')
 
@@ -157,6 +162,7 @@ class dbOperations(object):
                         #     if string[i] == "\n":
                         #         string[i] = " "
                         # tweet=''.join(string)
+                        text = textPreprocessing.analyseText(text)
                         tweet = text.lower()
                         outfile.write(tweet + "\n")
 
@@ -164,23 +170,33 @@ class dbOperations(object):
             print "Can't export diagnostic tweets", e
 
     def returnFieldIteration(self, collection, matchField, sortingField):
-        print matchField
         for doc in self.db[collection].aggregate([{"$match": {"search_terms": matchField}},
                                                   {"$sort": {sortingField: -1}},
                                                   {"$limit": 1},
                                                   {"$project": {sortingField: 1, "search_terms": 1}}], useCursor=False):
             return doc['iteration']
 
-    def returnSleepTweets(self, collection, field, value):
+    def returnSpecTweets(self, collection, user, query):
         collumns = []
-        index = []
-        for doc in self.db[collection].find({field: value}):
-            collumns.append({'text': doc['text'], "sentiment": doc['sentiment'], 'label': value})
+        for doc in self.db[collection].find(query):
+            collumns.append(
+                # {'text': doc['text'], 'label': value, "tweet_id": doc['tweet_id'], 'created_at': doc["created_at"],
+                #  'time_zone': doc['time_zone'], 'utc_offset': doc['utc_offset']})
+                {'text': doc['text'], 'label': user,'tweet_id':doc['tweet_id'], "pos_tags": doc['pos_tags'], 'freq_pos': doc["freq_pos"],
+                 'labeled_entities': doc['labeled_entities'], 'unlabeled_entities': doc['unlabeled_entities']})
         return collumns
+
+    #
 
     def returnDocsWithSpecificField(self, collection, field, value):
         dictTweets = []
         for tweet in self.db[collection].find({field: value}):
+            dictTweets.append(tweet)
+        return dictTweets
+
+    def returnDocsForTimelineExt(self, collection, field, value):
+        dictTweets = []
+        for tweet in self.db[collection].find({"$and": [{field: value}, {"processedTimeline": {"$exists": False}}]}):
             dictTweets.append(tweet)
         return dictTweets
 
@@ -201,3 +217,113 @@ class dbOperations(object):
             tweets.append(tweet['user']['rmorris']['label'])
             all.append(tweets)
         return all
+
+    def transferTweets(self):
+        try:
+            allTweetIds = []
+            for tweet in self.db["rohanDataset"].find({"diagnostic": "Yes"}):
+                if tweet['id'] not in allTweetIds:
+                    allTweetIds.append(tweet['id'])
+                    saveDataToJson = {'text': tweet["text"],
+                                      "tweet_id": tweet["id"],
+                                      'geo': tweet["geo"],
+                                      'userId': tweet["user"]["id"],
+                                      'created_at': tweet["created_at"],
+                                      'time_zone': tweet["user"]["time_zone"],
+                                      "utc_offset": tweet["user"]["utc_offset"],
+                                      'place': tweet["place"],
+                                      'coordinates': tweet["coordinates"],
+                                      'extraData': 'positve'}
+
+                    self.db['diagnosticTweets'].insert(saveDataToJson)
+
+            for tweet in self.db["andrewDataset"].find({"diagnostic": "Yes"}):
+                if tweet['id'] not in allTweetIds:
+                    allTweetIds.append(tweet['id'])
+                    saveDataToJson = {'text': tweet["text"],
+                                      "tweet_id": tweet["id"],
+                                      'geo': tweet["geo"],
+                                      'userId': tweet["user"]["id"],
+                                      'created_at': tweet["created_at"],
+                                      'time_zone': tweet["user"]["time_zone"],
+                                      "utc_offset": tweet["user"]["utc_offset"],
+                                      'place': tweet["place"],
+                                      'coordinates': tweet["coordinates"],
+                                      'extraData': 'positve'}
+
+                    self.db['diagnosticTweets'].insert(saveDataToJson)
+        except Exception as e:
+            print e
+
+    #########################################Information Extraction###################################################
+
+    def extractLocalTime(self, collection):
+        for doc in self.db[collection].find():
+            if doc["utc_offset"] != None:
+                localtime = IR.calculate_localtime(doc["created_at"], doc["utc_offset"])
+                if localtime == None:
+                    pod = None
+                else:
+                    pod = IR.get_part_of_the_day(localtime)
+            elif doc["time_zone"] != None:
+                localtime = IR.convertTimezoneToLocal(doc["time_zone"])
+                if localtime == None:
+                    pod = None
+                else:
+                    pod = IR.get_part_of_the_day(localtime)
+            else:
+                pod = None
+
+            self.db[collection].update({'_id': ObjectId(doc["_id"])}, {'$set': {"pod": pod}}, upsert=False,
+                                       multi=True)
+
+    def pos_tagging(self, collection):
+        feature_vector = []
+        counter = 0
+        for doc in self.db[collection].find(
+                {"$and": [{"user.rmorris.label": {"$exists": True}}, {"user.nberry.label": {"$exists": False}}]}):
+            result = textPreprocessing.tokenizeText(doc['text'])
+            result = CMUTweetTagger.runtagger_parse(result)
+            tags = [[x[1] for x in word] for word in result]
+            tags = [tag[0] for tag in tags]
+            freq = Counter(tags).most_common(2)
+            pos_tags = json.dumps(tags)
+            frequency = json.dumps(freq)
+            print 'Tag'
+            self.db[collection].update({'_id': ObjectId(doc["_id"])},
+                                       {'$set': {"pos_tags": pos_tags, "freq_pos": frequency}}, upsert=False,
+                                       multi=True)
+
+    def pos_tagging2(self, collection):
+        for doc in self.db[collection].find({"second": {"$exists": True}}):
+            list = json.loads(doc['second'])
+
+    def name_entity(self, collection):
+        counter = 0
+        for doc in self.db[collection].find():
+            print counter
+            unlabelled_entity_names = textPreprocessing.unlabelled_entity_names(doc['text'])
+            tagged_tweet = textPreprocessing.tagg_tweet(doc['text'])
+            labeled_entity = textPreprocessing.label_entity(tagged_tweet)
+            self.db[collection].update({'_id': ObjectId(doc["_id"])},
+                                       {'$set': {"labeled_entities": labeled_entity,
+                                                 "unlabeled_entities": unlabelled_entity_names}}, upsert=False,
+                                       multi=True)
+            counter += 1
+
+# sentences = nltk.sent_tokenize(text)
+# tokenized_sentences = [nltk.word_tokenize(sentence) for sentence in sentences]
+# tagged_sentences = [nltk.pos_tag(sentence) for sentence in tokenized_sentences]
+# chunked_sentences = nltk.ne_chunk(tagged_sentences, binary=True)
+# print chunked_sentences
+# print 'hui'
+# entity_names = []
+#
+# if hasattr(chunked_sentences, 'label') and chunked_sentences.label:
+#     if chunked_sentences.label() == 'NE':
+#         entity_names.append(' '.join([child[0] for child in chunked_sentences]))
+#     else:
+#         for child in chunked_sentences:
+#             entity_names.extend(self.extract_entity_names(child))
+#
+# return entity_names

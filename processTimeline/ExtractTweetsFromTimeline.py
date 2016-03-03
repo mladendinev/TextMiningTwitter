@@ -1,10 +1,11 @@
 __author__ = 'mladen'
-from datetime import datetime
-from datetime import timedelta
+
+import sys
 
 from auth.Authentication import Authentication
 from database import dbOperations
-import pytz
+from textProcessing.informationRetrieval import IR
+from datetime import timedelta
 
 
 class ExctractTweetsFromTimeline(object):
@@ -12,21 +13,6 @@ class ExctractTweetsFromTimeline(object):
         self.count = 100
         self.dbHelper = dbOperations.dbOperations("remote")
         self.twitterApiAuth = Authentication().timelineAuth()
-
-    def format_date(self, date):
-        format = datetime.strptime(date, '%a %b %d %H:%M:%S '
-                                         '+0000 %Y')
-        return format
-
-    def convertTimezoneToLocal(self, timezoneTweet):
-        localTime = pytz.timezone(timezoneTweet)
-        return localTime
-
-    def calculate_localtime(self, date, offset):
-        date = self.format_date(date)
-        offset /= 3600
-        localtime = date + timedelta(hours=offset)
-        return localtime
 
     def findTweetsBeforeDiagnosis(self, diagId, userId, minLimit, maxLimit):
         listIds = []
@@ -43,7 +29,7 @@ class ExctractTweetsFromTimeline(object):
                 for tweet in tweets:
                     beforeDiagCount += 1
                     listIds.append(tweet["id"])
-                    if minLimit <= self.format_date(tweet["created_at"]) <= maxLimit:
+                    if minLimit <= IR.format_date(tweet["created_at"]) <= maxLimit:
                         tweetData = {'text': tweet["text"],
                                      "tweet_id": tweet["id"],
                                      'geo': tweet["geo"],
@@ -55,11 +41,11 @@ class ExctractTweetsFromTimeline(object):
                                      'coordinates': tweet["coordinates"],
                                      'diagnosicTime': "before"}
                         if tweet["user"]["utc_offset"] != None:
-                            localtime = self.calculate_localtime(tweet["created_at"], tweet["user"]["utc_offset"])
+                            localtime = IR.calculate_localtime(tweet["created_at"], tweet["user"]["utc_offset"])
                             dict2 = {"local_time": localtime}
                             tweetData.update(dict2)
                         elif tweet["user"]["time_zone"] != None:
-                            localtime = self.convertTimezoneToLocal(tweet["user"]["time_zone"])
+                            localtime = IR.convertTimezoneToLocal(tweet["user"]["time_zone"])
                             dict2 = {"local_time": localtime}
                             tweetData = tweetData.update(dict2)
                         else:
@@ -88,7 +74,7 @@ class ExctractTweetsFromTimeline(object):
                 for tweet in tweets:
                     afterDiagCount += 1
                     listIds.append(tweet["id"])
-                    if minLimit <= self.format_date(tweet["created_at"]) <= maxLimit:
+                    if minLimit <= IR.format_date(tweet["created_at"]) <= maxLimit:
                         tweetData = {'text': tweet["text"],
                                      "tweet_id": tweet["id"],
                                      'geo': tweet["geo"],
@@ -98,15 +84,15 @@ class ExctractTweetsFromTimeline(object):
                                      "utc_offset": tweet["user"]["utc_offset"],
                                      'place': tweet["place"],
                                      'coordinates': tweet["coordinates"],
-                                     'diagnosicTime': "before"}
+                                     'diagnosicTime': "after"}
                         if tweet["user"]["utc_offset"] != None:
                             print tweet["user"]["utc_offset"]
                             print tweet["text"]
-                            localtime = self.calculate_localtime(tweet["created_at"], tweet["user"]["utc_offset"])
+                            localtime = IR.calculate_localtime(tweet["created_at"], tweet["user"]["utc_offset"])
                             dict2 = {"local_time": localtime}
                             tweetData.update(dict2)
                         elif tweet["user"]["time_zone"] != None:
-                            localtime = self.convertTimezoneToLocal(tweet["user"]["time_zone"])
+                            localtime = IR.convertTimezoneToLocal(tweet["user"]["time_zone"])
                             dict2 = {"local_time": localtime}
                             tweetData = tweetData.update(dict2)
                         else:
@@ -123,28 +109,47 @@ class ExctractTweetsFromTimeline(object):
                 break
 
     def getTweetsFromTimeline(self, tweet):
-        diagnosticTweetId = tweet["tweet_id"]
-        userId = tweet["userId"]
-        diagnosticDate = tweet["created_at"]
-        formatDiagnosticDate = self.format_date(diagnosticDate)
 
-        timeframeBefore = timedelta(days=48)
-        timeframeAfter = timedelta(days=1000)
-        maxLimit = formatDiagnosticDate + timeframeAfter
-        minLimit = formatDiagnosticDate - timeframeBefore
-        print "Tweets before the diagnosis"
-        self.findTweetsBeforeDiagnosis(diagnosticTweetId, userId, minLimit, formatDiagnosticDate)
-        print "Tweets afrer the diagnosis"
-        self.findTweetsAfterDiagnosis(diagnosticTweetId, userId, formatDiagnosticDate, maxLimit)
+        diagnosticTweetId = tweet["tweet_id"]
+        seen = []
+        if diagnosticTweetId not in seen:
+            seen.append(diagnosticTweetId)
+            userId = tweet["userId"]
+            diagnosticDate = tweet["created_at"]
+            formatDiagnosticDate = IR.format_date(diagnosticDate)
+
+            timeframeBefore = timedelta(days=48)
+            timeframeAfter = timedelta(days=1000)
+            maxLimit = formatDiagnosticDate + timeframeAfter
+            minLimit = formatDiagnosticDate - timeframeBefore
+            print "Tweets before the diagnosis"
+            self.findTweetsBeforeDiagnosis(diagnosticTweetId, userId, minLimit, formatDiagnosticDate)
+            print "Tweets afrer the diagnosis"
+            self.findTweetsAfterDiagnosis(diagnosticTweetId, userId, formatDiagnosticDate, maxLimit)
 
 
 if __name__ == '__main__':
     print "Extracting timeline tweets"
-    # tweet = dbOperations.dbOperations("local").findElementInCollection("diagnosticTweets", {"tweet_id": 658906748997255169})
-    rohanDiagnostic = dbOperations.dbOperations("remote").returnDocsWithSpecificField('diagnosticTweets', "user.rmorris.label",
-                                                                                      'positive')
-    natalieDiagnostic = dbOperations.dbOperations("remote").returnDocsWithSpecificField('diagnosticTweets', "user.nberry.label",
-                                                                                       'positive')
-    allDiagnostic = natalieDiagnostic +natalieDiagnostic
-    for tweet in allDiagnostic:
-        ExctractTweetsFromTimeline().getTweetsFromTimeline(tweet)
+    try:
+        rohanDiagnostic = dbOperations.dbOperations("remote").returnDocsForTimelineExt('diagnosticTweets',
+                                                                                       "user.rmorris.label",
+                                                                                       'positve')
+        natalieDiagnostic = dbOperations.dbOperations("remote").returnDocsForTimelineExt('diagnosticTweets',
+                                                                                         "user.nberry.label",
+                                                                                         'positve')
+        extraSet = dbOperations.dbOperations("remote").returnDocsForTimelineExt('diagnosticTweets',
+                                                                                         "user.extra.label",
+                                                                                         'positve')
+
+        allDiagnostic = natalieDiagnostic + natalieDiagnostic + extraSet
+        if len(allDiagnostic) == 0:
+            print "No new diagnostic Tweets"
+        else:
+            for tweet in allDiagnostic:
+                ExctractTweetsFromTimeline().getTweetsFromTimeline(tweet)
+                dbOperations.dbOperations("remote").updateDocumnet("diagnosticTweets", {"_id": tweet['_id']},
+                                                                   {'$set': {'processedTimeline': "yes"}})
+    except Exception as e:
+        print e
+        sys.exit(0)
+
