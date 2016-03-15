@@ -17,7 +17,7 @@ from collections import Counter
 from history import CMUTweetTagger
 import nltk
 from nltk.tag.stanford import StanfordNERTagger
-
+from TweetNLP.twokenize import tokenizeRawTweetText
 
 
 # from enchant.checker.wxSpellCheckerDialog import wxSpellCheckerDialog
@@ -151,7 +151,8 @@ def removeStopwords(text):
 
 
 def analyseText(tweet):
-    text = ''
+    tweet = tweet.replace("\n",' ')
+    tweet = tweet.replace("&amp", "")
     emojiRemove = remove_emoji(tweet)
     objRemove = objectRemoval(emojiRemove)
     return objRemove
@@ -171,17 +172,15 @@ def remove_emoji(tweet):
 
 
 # Tag each word as part of setence
-def posTagging(listTweets):
-    results = []
-    for tweet in listTweets:
-        results.append(CMUTweetTagger.runtagger_parse([tweet]))
+def posTagging(text):
+    results = CMUTweetTagger.runtagger_parse([text])
     return results
 
 
 def tokenizeText(text):
     # punct = re.compile(r'([^A-Za-z0-9 ])')
     # punct.sub("", text)
-    tokens = nltk.word_tokenize(text)
+    tokens = tokenizeRawTweetText(text)
     return tokens
 
 
@@ -195,7 +194,6 @@ def stemming(text):
 
 # Removing the punctuation
 def removePunctuation(text):
-    print text
     out = text.translate(remove_punctuation_map)
     return out
 
@@ -226,22 +224,25 @@ def compose(*functions):
     return inner
 
 
+stem_buckets = {}
 def normaliseText(tweet):
+    global stem_buckets
     tweet = tweet.lower()
-    tweet= tweet.replace("&amp", "")
+    tweet = tweet.replace("&amp", "")
     filterTweet = analyseText(tweet)
     tweet = replaceAbbreviation(filterTweet)
-    filterTweet = analyseText(tweet)
     # noPunct = removePunctuation(filterTweet)
     tokens = tokenizeText(filterTweet)
     text = []
     for token in tokens:
-        if token not in cacheStopwords:
-            text.append(stemmer.stem(token))
-    tweet = ' '.join(text)
-    return tweet
-
-    print list
+        if token not in cacheStopwords and token not in string.punctuation:
+            st = stemmer.stem(token)
+            if st not in stem_buckets:
+                stem_buckets[st] = set()
+            stem_buckets[st].add(token)
+            text.append(st)
+    # tweet = ' '.join(text)
+    return text
 
 
 def unlabelled_entity_names(text):
@@ -282,6 +283,21 @@ def label_entity(sent):
     if first_chunk:
         chunks.append(first_chunk)
     return chunks
+
+def semanticNormalisation(listData):
+    normalised = []
+    for element in listData:
+        element = element.lower()
+        normalised.append(element)
+    return normalised
+
+def normSentiment(tweet):
+    #emojiRemove = remove_emoji(tweet)
+    tweet = tweet.replace("\n",' ')
+    tweet = tweet.replace("&amp", "")
+    tweet = replaceAbbreviation(tweet)
+    return tweet
+
 
 # def dependencyTree(self):
 #     dependencies = self.parser.parseToStanfordDependencies("Ivan is a good guy.")

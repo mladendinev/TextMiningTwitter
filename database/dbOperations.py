@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 __author__ = 'mladen'
-
 import json
 import codecs
 from collections import Counter
@@ -7,6 +7,7 @@ from collections import Counter
 import pymongo
 from bson.objectid import ObjectId
 
+from sentiStrength.run import PythonWrapSentiment
 from auth import Authentication
 from textProcessing import textPreprocessing
 from textProcessing import filters
@@ -133,18 +134,6 @@ class dbOperations:
             print e
             pass
 
-    def updateCollection(self, collection, field, value):
-        try:
-            countAll = 0
-            countNone = 0
-            for doc in self.db[collection].find():
-                countAll += 1
-                self.db[collection].update({'_id': ObjectId(doc["_id"])}, {'$set': {field: value}}, upsert=False,
-                                           multi=True)
-            print countAll
-
-        except Exception as e:
-            print e
 
     def exportPositiveDiagnosticTweets(self, collection):
         try:
@@ -176,21 +165,26 @@ class dbOperations:
                                                   {"$project": {sortingField: 1, "search_terms": 1}}], useCursor=False):
             return doc['iteration']
 
-    def returnSpecTweets(self, collection, user, query):
+    def returnInfoExtraction(self, collection, user1, query):
         collumns = []
         for doc in self.db[collection].find(query):
             collumns.append(
-                # {'text': doc['text'], 'label': value, "tweet_id": doc['tweet_id'], 'created_at': doc["created_at"],
-                #  'time_zone': doc['time_zone'], 'utc_offset': doc['utc_offset']})
-                {'text': doc['text'], 'label': user,'tweet_id':doc['tweet_id'], "pos_tags": doc['pos_tags'], 'freq_pos': doc["freq_pos"],
-                 'labeled_entities': doc['labeled_entities'], 'unlabeled_entities': doc['unlabeled_entities']})
+                {'text': doc['text'], 'label': user1,
+                 'tweet_id': doc['tweet_id'],
+                 "pos_tags": doc['pos_tags'],
+                 'freq_pos': doc["freq_pos"],
+                 'labeled_entities': doc['labeled_entities'],
+                 'unlabeled_entities': doc['unlabeled_entities'],
+                 'pod': doc['pod'], 'semantic_class': doc['semantic_class'],
+                 'min_after_midnight': doc['min_after_midnight'],
+                 })
         return collumns
 
     #
 
-    def returnDocsWithSpecificField(self, collection, field, value):
+    def returnDocsWithSpecificField(self, collection):
         dictTweets = []
-        for tweet in self.db[collection].find({field: value}):
+        for tweet in self.db[collection].find():
             dictTweets.append(tweet)
         return dictTweets
 
@@ -206,17 +200,6 @@ class dbOperations:
                 self.db[collection].update({'_id': ObjectId(tweet["_id"])}, {'$set': {"potentialDiagnostic": "yes"}},
                                            upsert=False,
                                            multi=False)
-
-    def exportRohanTweets(self, collection):
-
-        all = []
-        for tweet in self.db[collection].find(
-                {"$and": [{"user.rmorris": {"$exists": True}}, {"user.nberry": {"$exists": False}}]}):
-            tweets = []
-            tweets.append(tweet['text'])
-            tweets.append(tweet['user']['rmorris']['label'])
-            all.append(tweets)
-        return all
 
     def transferTweets(self):
         try:
@@ -258,24 +241,29 @@ class dbOperations:
     #########################################Information Extraction###################################################
 
     def extractLocalTime(self, collection):
+        global localtime
         for doc in self.db[collection].find():
-            if doc["utc_offset"] != None:
+            if doc['coordinates'] != None:
+                if doc['coordinates']['type'] == 'Point':
+                    localtime = IR.get_timezone(doc['coordinates']['coordinates'], doc["created_at"])
+            elif doc["utc_offset"] != None:
                 localtime = IR.calculate_localtime(doc["created_at"], doc["utc_offset"])
-                if localtime == None:
-                    pod = None
-                else:
-                    pod = IR.get_part_of_the_day(localtime)
             elif doc["time_zone"] != None:
-                localtime = IR.convertTimezoneToLocal(doc["time_zone"])
-                if localtime == None:
-                    pod = None
-                else:
-                    pod = IR.get_part_of_the_day(localtime)
+                localtime = IR.convertTimezoneToLocal(doc["time_zone"],doc["created_at"])
             else:
-                pod = None
+                localtime = None
+            self.db[collection].update({'_id': ObjectId(doc["_id"])}, {'$set': {"local_time_tweet": localtime}},
+                                           upsert=False,
+                                           multi=True)
 
-            self.db[collection].update({'_id': ObjectId(doc["_id"])}, {'$set': {"pod": pod}}, upsert=False,
-                                       multi=True)
+    def convertTimeToMins(self,collection):
+        for doc in self.db[collection].find():
+            if doc["local_time_tweet"] !=None:
+                convertTime = IR.minutes_after_midnight(doc["local_time_tweet"])
+                self.db[collection].update({'_id': ObjectId(doc["_id"])}, {'$set': {"min_after_midnight": convertTime}},
+                                           upsert=False,
+                                           multi=True)
+
 
     def pos_tagging(self, collection):
         feature_vector = []
@@ -289,14 +277,21 @@ class dbOperations:
             freq = Counter(tags).most_common(2)
             pos_tags = json.dumps(tags)
             frequency = json.dumps(freq)
-            print 'Tag'
             self.db[collection].update({'_id': ObjectId(doc["_id"])},
                                        {'$set': {"pos_tags": pos_tags, "freq_pos": frequency}}, upsert=False,
                                        multi=True)
 
-    def pos_tagging2(self, collection):
-        for doc in self.db[collection].find({"second": {"$exists": True}}):
-            list = json.loads(doc['second'])
+
+    def updateCommon(self, collection):
+        counter = 0
+        for doc in self.db[collection].find({"potentialDiagnostic": {"$exists": True}}):
+            if counter < 10:
+                self.db[collection].update({'_id': ObjectId(doc["_id"])},
+                                           {'$set': {"common": "yes"}}, upsert=False,
+                                           multi=True)
+                counter += 1
+            else:
+                break
 
     def name_entity(self, collection):
         counter = 0
@@ -311,19 +306,46 @@ class dbOperations:
                                        multi=True)
             counter += 1
 
-# sentences = nltk.sent_tokenize(text)
-# tokenized_sentences = [nltk.word_tokenize(sentence) for sentence in sentences]
-# tagged_sentences = [nltk.pos_tag(sentence) for sentence in tokenized_sentences]
-# chunked_sentences = nltk.ne_chunk(tagged_sentences, binary=True)
-# print chunked_sentences
-# print 'hui'
-# entity_names = []
-#
-# if hasattr(chunked_sentences, 'label') and chunked_sentences.label:
-#     if chunked_sentences.label() == 'NE':
-#         entity_names.append(' '.join([child[0] for child in chunked_sentences]))
-#     else:
-#         for child in chunked_sentences:
-#             entity_names.extend(self.extract_entity_names(child))
-#
-# return entity_names
+    def semantic_classes(self, collection):
+        for doc in self.db[collection].find():
+            listEntry = []
+            for semantic in self.db['semantic_classes'].find():
+                normalisedEntity = [x.lower() for x in semantic['entities']]
+                normalisedText = [x.lower() for x in textPreprocessing.tokenizeText(doc['text'])]
+                interesection = list(set(normalisedEntity) & set(normalisedText))
+                if interesection:
+                    for element in interesection:
+                        data = {semantic['name']: element}
+                        listEntry.append(data)
+
+            self.db[collection].update({'_id': ObjectId(doc['_id'])},
+                                       {'$set': {"semantic_class": listEntry}},
+                                       upsert=False,
+                                       multi=True)
+
+    def findAndReturn(self,collection,query):
+        output = []
+        for doc in self.db[collection].find(query):
+            output.append(doc)
+        return output
+
+
+    def sentimentPolarity(self,collection):
+        counter = 0
+        for doc in self.db[collection].find({"sentiment_strength":{"$exists":False}}):
+            tweet = textPreprocessing.normSentiment(doc['text']).encode('ascii', 'ignore')
+            if len(tweet) > 1:
+                sentiment = PythonWrapSentiment().RateSentiment(tweet)
+                self.db[collection].update({'_id': ObjectId(doc['_id'])},
+                                           {'$set': {"sentiment_strength": sentiment}},
+                                           upsert=False,
+                                           multi=True)
+
+    def semanticVariety(self,collection):
+        varietySemantic = []
+        for doc in self.db[collection].find():
+            if doc["semantic_class"]:
+                for dictionary in doc['semantic_class']:
+                    for key in dictionary:
+                        varietySemantic.append(key)
+        return Counter(varietySemantic)

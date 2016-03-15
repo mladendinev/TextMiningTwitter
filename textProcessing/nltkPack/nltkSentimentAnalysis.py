@@ -1,16 +1,12 @@
 __author__ = 'mladen'
-import sys
-import json
 from multiprocessing import Pool, Manager
-import random
-from database import dbOperations
+
 import requests
-import pymongo
+from database.dbOperations import dbOperations as db
 
 
 def main():
-
-    sleepTweets = dbOperations.dbOperations("local").returnDocsWithSpecificField("sleepTweetsTest","sleepRelated","yes")
+    sleepTweets = db("remote").returnDocsWithSpecificField("timelineDiagnosedUsers2")
 
     collection = []
     # for i in range(0, 10):
@@ -27,6 +23,7 @@ def main():
     # # Print some interesting results to the screen
     # print_results()
     return
+
 
 def enrich(tweets):
     pool = Pool(processes=10)
@@ -57,7 +54,7 @@ def get_text_sentiment(tweet, output):
     try:
         results = requests.post(url=nltk_sentiment_url, data=parameters)
         # print results.text
-        response =results.json()
+        response = results.json()
         # data = json.dumps(results.text)
         # print data
         # print type(results)
@@ -73,7 +70,7 @@ def get_text_sentiment(tweet, output):
         tweet['score'] = response['probability'][response['label']]
         tweet['score'] = 0.
 
-        if tweet['sentiment'] in ('pos','neg','neutral'):
+        if tweet['sentiment'] in ('pos', 'neg', 'neutral'):
             tweet['score'] = response['probability'][response['label']]
         output.put(tweet)
 
@@ -86,17 +83,9 @@ def get_text_sentiment(tweet, output):
     return
 
 
-def databaseInstance():
-    db= dbOperations.dbOperations("local")
-    return db
-
-
-
 def store(tweets):
     for tweet in tweets:
-        databaseInstance().insertData(tweet,"sentimentSleepTweetsNltk")
-    return
-
+        db("remote").updateDocumnet('timelineDiagnosedUsers2', {"_id": tweet['_id']}, {"$set": {"sentiment": tweet["sentiment"]}})
 
 def print_results():
     print ''

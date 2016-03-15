@@ -1,9 +1,12 @@
 __author__ = 'mladen'
 from datetime import timedelta
-from datetime import datetime
+import datetime
 
+from timezonefinder.timezonefinder import TimezoneFinder
 import pytz
 from pytz import UnknownTimeZoneError
+
+
 #
 # POD_EARLY_MORNING = 'Early morning'
 # POD_LATE_MORNING = 'Late morning'
@@ -14,6 +17,33 @@ from pytz import UnknownTimeZoneError
 # POD_EVENING = 'Evening'
 # POD_NIGHT = 'Night'
 
+def get_timezone(coordinates,date):
+    newDate = format_date(date)
+    # client = googlemaps.Client(key="AIzaSyCHxO_Iztdpq3u4INXWfQnSJeyPvXEzW7A")
+    tf = TimezoneFinder()
+    lng = float(coordinates[0])
+    lat = float(coordinates[1])
+    timezone = tf.timezone_at(lng,lat)
+    localtime = None
+    if timezone!= None:
+        offset = pytz.timezone(timezone).localize(datetime.datetime(newDate.year,newDate.month,newDate.day)).utcoffset()
+        offset /= 3600
+        localtime = newDate + offset
+    return localtime
+
+    # geocode_result = client.timezone()
+def convertTimezoneToLocal(timezoneTweet,date):
+    try:
+        newDate = format_date(date)
+        offset = pytz.timezone(timezoneTweet).localize(datetime.datetime(newDate.year,newDate.month,newDate.day)).utcoffset()
+        offset /= 3600
+        localtime = newDate + offset
+        return localtime
+    except UnknownTimeZoneError as e:
+        print 'unknown'
+
+
+
 early_morning = "early_morning"
 morning = "morning"
 afternoon = 'afternoon'
@@ -21,8 +51,15 @@ evening = 'evening'
 
 
 def format_date(date):
-    format = datetime.strptime(date, '%a %b %d %H:%M:%S ' '+0000 %Y')
+    format = datetime.datetime.strptime(date, '%a %b %d %H:%M:%S ' '+0000 %Y')
     return format
+
+
+def minutes_after_midnight(ts):
+    hour = ts.hour * 60
+    minutes = ts.minute
+    minAfterMidnight = hour + minutes
+    return minAfterMidnight
 
 
 def get_part_of_the_day(ts):
@@ -39,14 +76,6 @@ def get_part_of_the_day(ts):
         return afternoon
     elif 18 <= 0:
         return evening
-
-
-def convertTimezoneToLocal(timezoneTweet):
-    try:
-        localTime = pytz.timezone(timezoneTweet)
-        return localTime
-    except UnknownTimeZoneError as e:
-        print 'unknown'
 
 
 def calculate_localtime(date, offset):

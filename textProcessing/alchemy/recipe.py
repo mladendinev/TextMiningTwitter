@@ -14,19 +14,20 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os, sys, string, time, re
-import requests, json, urllib, urllib2, base64
-import pymongo
-from multiprocessing import Pool, Lock, Queue, Manager
-import random
+import sys
+import urllib
+from multiprocessing import Pool, Manager
+
+import requests
+
+from database.dbOperations import dbOperations as db
 from database import dbOperations
 
 
 def main():
     # Establish credentials for Twitter and AlchemyAPI
     credentials = get_credentials()
-    sleepTweets = dbOperations.dbOperations("local").returnDocsWithSpecificField("sleepTweetsTest", "sleepRelated",
-                                                                                 "yes")
+    sleepTweets = db("remote").returnDocsWithSpecificField("timelineDiagnosedUsers2")
     print len(sleepTweets)
     # Enrich the body of the Tweets using AlchemyAPI
     collection = []
@@ -141,13 +142,13 @@ def get_text_sentiment(apikey, tweet, output):
 
 
 def databaseInstance():
-    db= dbOperations.dbOperations("local")
+    db = dbOperations.dbOperations("local")
     return db
 
 
 def store(tweets):
     for tweet in tweets:
-        databaseInstance().insertData(tweet,"sentimentSleepTweetsAlchemy")
+        db("remote").updateDocumnet('timelineDiagnosedUsers2', {"_id": tweet['_id']}, {"$set": {"sentiment_alchemy": tweet["sentiment"]}})
     return
 
 
@@ -214,5 +215,3 @@ def print_results():
 
 if __name__ == "__main__":
     main()
-
-

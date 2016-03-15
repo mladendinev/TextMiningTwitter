@@ -4,7 +4,7 @@ import nltk.classify.util
 from nltk.corpus import movie_reviews
 
 import textProcessing.featureExtraction as features
-from textProcessing import trainingData as train
+from textProcessing import dataAnalysis as train
 from textProcessing import textPreprocessing as process
 
 labeledData = ([(process.normaliseText(tweet), 'pos') for tweet in train.splitDataset()[0]] + [(process.normaliseText(tweet), 'neg') for tweet in train.splitDataset()[1]])
