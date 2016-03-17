@@ -1,9 +1,8 @@
 # from __future__ import unicode_literals
 __author__ = 'mladen'
-from nltk.corpus import sentiwordnet
 from nltk.corpus import wordnet as wn
-import tfidf
 from nltk.parse import stanford
+
 import textPreprocessing
 
 
@@ -19,13 +18,13 @@ def negationDetection(tweet):
     print tree
     print "-------------------------------------------"
     relations = [str(x[1]) for x in tree]
-    print relations
     if "neg" in relations:
         negation = findAllIndexes(relations, 'neg')
         for index in negation:
             # print tree[index][0]
             if len(set(verbTags) & set(tree[index][0])) > 0 or len(set(verbTags) & set(tree[index][1])) > 0:
-                print "negation detected"
+                return 0
+    return 1
 
 
 def encodeTupple(list):
@@ -44,4 +43,4 @@ def findSynsets(text):
 
 def findSimilarityInSynsets():
     for x in wn.synsets("bank"):
-       print "X is {} and hypernym is {}".format(x,x.hypernyms())
+        print "X is {} and hypernym is {}".format(x, x.hypernyms())

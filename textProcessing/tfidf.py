@@ -11,9 +11,10 @@ from summa import keywords
 import textPreprocessing as ops
 
 
-class semanticFunc():
+class tfidf:
     def wordContext(self, text):
-        text = sentiwordnet.senti_synset('')
+        synset = sentiwordnet.senti_synset('')
+        return synset
 
     def tf(self, word, blob):
         return blob.words.count(word) / len(blob.words)
@@ -47,7 +48,7 @@ class semanticFunc():
             # response = vectorizer.transform([str])
             # print response
             feature_names = vectorizer.get_feature_names()
-            print "Feature names", feature_names
+            # print "Feature names", feature_names
             # for col in response.nonzero()[1]:
             #     print feature_names[col], ' - ', response[0, col]
             cosine_similarities = linear_kernel(tfidf[0:1], tfidf).flatten()
@@ -94,15 +95,19 @@ class semanticFunc():
         dense = tf_idf.todense()
         test_tweet = dense[1].tolist()[0]
         phrase_scores = [pair for pair in zip(range(0, len(test_tweet)), test_tweet) if pair[1] > 0]
-
+        keyWords = []
         sorted_phrase_scores = sorted(phrase_scores, key=lambda t: t[1] * -1)
-        for phrase, score in [(feature_names[word_id], score) for (word_id, score) in sorted_phrase_scores][:20]:
-            print('{0: <20} {1}'.format(phrase, score))
+        for phrase, score in [(feature_names[word_id], score) for (word_id, score) in sorted_phrase_scores][:30]:
+            keyWords.append(phrase)
+            print('{0: <30} {1}'.format(phrase, score))
+
+        # return keyWords
+
 
 
 if __name__ == "__main__":
-    semantics = semanticFunc()
+    semantics = tfidf()
     # "Most imporant words"
-    # semantics.tfidfFunc()
+    semantics.tfidfFunc()
     # scit
     semantics.testScit()

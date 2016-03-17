@@ -8,6 +8,7 @@ def getTerms(fileName):
             terms=[]
             disorderList = disorderFile.readlines()
             for line in disorderList:
+                line = line.lower()
                 line = line.rstrip('\n')
                 terms.append(line)
             return terms
@@ -18,7 +19,6 @@ def getTerms(fileName):
 
 def getAbbreviations():
     filename = "/home/mladen/TextMiningTwitter/word_lists/abbreviations.txt"
-
     dictionary = {}
     with open(filename) as f:
         for line in f.readlines():

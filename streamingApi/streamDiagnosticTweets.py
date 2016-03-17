@@ -60,12 +60,14 @@ class CustomStreamListener(StreamListener):
     def on_error(self, status_code):
         print >> sys.stderr, 'Encountered error with status code:', status_code
         if (status_code == 420):
+            print 'chakai'
             time.sleep(900)
         return True  # Don't kill the stream
 
     def on_exception(self, exception):
         """Called when an unhandled exception occurs."""
         return exception
+
 
     def on_timeout(self):
         print >> sys.stderr, 'Timeout...'
