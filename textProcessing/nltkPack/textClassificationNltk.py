@@ -21,8 +21,6 @@ def compose(*functions):
 
 
 # Negative sleep tweets
-
-
 def word_feats(words):
     return dict([(word, True) for word in words])
 

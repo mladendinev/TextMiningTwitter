@@ -7,41 +7,31 @@ import pytz
 from pytz import UnknownTimeZoneError
 
 
-#
-# POD_EARLY_MORNING = 'Early morning'
-# POD_LATE_MORNING = 'Late morning'
-# POD_AFTERNOON = 'Afternoon'
-# POD_LATE_AFTERNOON = 'Late afternoon'
-# POD_EARLY_AFTERNOON = 'Early afternoon'
-# POD_EARLY_EVENING = 'Early evening'
-# POD_EVENING = 'Evening'
-# POD_NIGHT = 'Night'
-
-def get_timezone(coordinates,date):
+def get_timezone(coordinates, date):
     newDate = format_date(date)
-    # client = googlemaps.Client(key="AIzaSyCHxO_Iztdpq3u4INXWfQnSJeyPvXEzW7A")
     tf = TimezoneFinder()
     lng = float(coordinates[0])
     lat = float(coordinates[1])
-    timezone = tf.timezone_at(lng,lat)
+    timezone = tf.timezone_at(lng, lat)
     localtime = None
-    if timezone!= None:
-        offset = pytz.timezone(timezone).localize(datetime.datetime(newDate.year,newDate.month,newDate.day)).utcoffset()
+    if timezone != None:
+        offset = pytz.timezone(timezone).localize(
+            datetime.datetime(newDate.year, newDate.month, newDate.day)).utcoffset()
         offset /= 3600
         localtime = newDate + offset
     return localtime
 
-    # geocode_result = client.timezone()
-def convertTimezoneToLocal(timezoneTweet,date):
+
+def convertTimezoneToLocal(timezoneTweet, date):
     try:
         newDate = format_date(date)
-        offset = pytz.timezone(timezoneTweet).localize(datetime.datetime(newDate.year,newDate.month,newDate.day)).utcoffset()
+        offset = pytz.timezone(timezoneTweet).localize(
+            datetime.datetime(newDate.year, newDate.month, newDate.day)).utcoffset()
         offset /= 3600
         localtime = newDate + offset
         return localtime
     except UnknownTimeZoneError as e:
         print 'unknown'
-
 
 
 early_morning = "early_morning"
@@ -84,23 +74,3 @@ def calculate_localtime(date, offset):
     localtime = date + timedelta(hours=offset)
     return localtime
 
-# h += 1
-# if 5 <= h < 8:
-#     return POD_MORNING, POD_EARLY_MORNING
-# elif 11 <= h < 12:
-#     return POD_MORNING, POD_LATE_MORNING
-# elif 5 <= h < 12:
-#     return POD_MORNING, POD_MORNING
-# elif 13 <= h < 15:
-#     return POD_AFTERNOON, POD_EARLY_AFTERNOON
-# elif 16 <= h < 17:
-#     return POD_AFTERNOON, POD_LATE_AFTERNOON
-# elif 12 <= h < 17:
-#     return POD_AFTERNOON, POD_AFTERNOON
-# elif 17 <= h < 19:
-#     return POD_EVENING, POD_EARLY_EVENING
-# elif 17 <= h < 21:
-#     return POD_EVENING, POD_EVENING
-# elif h >= 21 or h <= 4:
-#     return POD_NIGHT, POD_NIGHT
-# return None, None

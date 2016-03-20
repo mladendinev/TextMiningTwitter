@@ -9,7 +9,7 @@ import textPreprocessing
 def findAllIndexes(list, num):
     return filter(lambda a: list[a] == num, range(0, len(list)))
 
-
+#Negation detection module
 def negationDetection(tweet):
     parser = stanford.StanfordDependencyParser(model_path="/home/mladen/TextMiningTwitter/history/englishPCFG.ser.gz")
     verbTags = [u'VB', u'VBD', u'VBG', u'VBN', u'VBP', u'VBZ']

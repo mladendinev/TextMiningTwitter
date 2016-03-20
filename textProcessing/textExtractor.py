@@ -1,6 +1,6 @@
 __author__ = 'mladen'
 
-
+##########################################CLASS USED FOR EXTRACTING TERMS FROM THE PACKAGE WORDLIST###############
 def getTerms(fileName):
     # os.path.join('/home/mladen/TextMiningTwitter/word_lists',       )
     try:

@@ -40,7 +40,6 @@ def main():
     store(enriched_tweets)
     #
     # # Print some interesting results to the screen
-    print_results()
     return
 
 
@@ -133,7 +132,6 @@ def get_text_sentiment(apikey, tweet, output):
         output.put(tweet)
 
     except Exception as e:
-        print "D'oh! There was an error enriching Tweet (ID %s)" % tweet['id']
         print "Error:", e
         print "Request:", results.url
         print "Response:", response
@@ -148,68 +146,8 @@ def databaseInstance():
 
 def store(tweets):
     for tweet in tweets:
-        db("remote").updateDocumnet('timelineDiagnosedUsers2', {"_id": tweet['_id']}, {"$set": {"sentiment_alchemy": tweet["sentiment"]}})
-    return
-
-
-def print_results():
-    # print ''
-    # print ''
-    # print '###############'
-    # print '#    Stats    #'
-    # print '###############'
-    # print ''
-    # print ''
-    #
-    # tweets = databaseInstance("alchemy")
-    #
-    # num_positive_tweets = tweets.find({"sentiment": "positive"}).count()
-    # num_negative_tweets = tweets.find({"sentiment": "negative"}).count()
-    # num_neutral_tweets = tweets.find({"sentiment": "neutral"}).count()
-    # num_tweets = tweets.find().count()
-    #
-    # if num_tweets != sum((num_positive_tweets, num_negative_tweets, num_neutral_tweets)):
-    #     print "Counting problem!"
-    #     print "Number of tweets (%d) doesn't add up (%d, %d, %d)" % (num_tweets,
-    #                                                                  num_positive_tweets,
-    #                                                                  num_negative_tweets,
-    #                                                                  num_neutral_tweets)
-    #     sys.exit()
-    #
-    # most_positive_tweet = tweets.find_one({"sentiment": "positive"}, sort=[("score", -1)])
-    # most_negative_tweet = tweets.find_one({"sentiment": "negative"}, sort=[("score", 1)])
-    #
-    # mean_results = tweets.aggregate([{"$group": {"_id": "$sentiment", "avgScore": {"$avg": "$score"}}}])
-    # mean_results = list(mean_results)
-    # print mean_results
-    # # avg_pos_score = mean_results[1]['avgScore']
-    # # avg_neg_score = mean_results[2]['avgScore']
-    #
-    # print "SENTIMENT BREAKDOWN"
-    # print "Number (%%) of positive tweets: %d (%.2f%%)" % (
-    #     num_positive_tweets, 100 * float(num_positive_tweets) / num_tweets)
-    # print "Number (%%) of negative tweets: %d (%.2f%%)" % (
-    #     num_negative_tweets, 100 * float(num_negative_tweets) / num_tweets)
-    # print "Number (%%) of neutral tweets: %d (%.2f%%)" % (
-    #     num_neutral_tweets, 100 * float(num_neutral_tweets) / num_tweets)
-    # print ""
-
-    # print "AVERAGE POSITIVE TWEET SCORE: %f" % float(avg_pos_score)
-    # print "AVERAGE NEGATIVE TWEET SCORE: %f" % float(avg_neg_score)
-    # print ""
-    #
-    # print "MOST POSITIVE TWEET"
-    # print "Text: %s" % most_positive_tweet['text']
-    # print "User: %s" % most_positive_tweet['screen_name']
-    # print "Time: %s" % most_positive_tweet['time']
-    # print "Score: %f" % float(most_positive_tweet['score'])
-    # print ""
-    #
-    # print "MOST NEGATIVE TWEET"
-    # print "Text: %s" % most_negative_tweet['text']
-    # print "User: %s" % most_negative_tweet['screen_name']
-    # print "Time: %s" % most_negative_tweet['time']
-    # print "Score: %f" % float(most_negative_tweet['score'])
+        db("remote").updateDocumnet('timelineDiagnosedUsers2', {"_id": tweet['_id']},
+                                    {"$set": {"sentiment_alchemy": tweet["sentiment"]}})
     return
 
 

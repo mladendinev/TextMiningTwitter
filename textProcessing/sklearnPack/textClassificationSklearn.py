@@ -14,8 +14,11 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.svm import SVC
+import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.grid_search import GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import Imputer
 from textProcessing import featureExtraction as features
 import metricsClassifier
 from textProcessing.textPreprocessing import normaliseText
@@ -97,7 +100,7 @@ class textClassificationSklearn():
     def classificaitonPosTags(self, trainingData, testingData, trainingLabels, testingLabels):
         vec = DictVectorizer()
         # print trainingData
-        vectorized = vec.fit_transform(trainingData+testingData)
+        vectorized = vec.fit_transform(trainingData + testingData)
         vectorizeTestData = vec.transform(testingData)
         # clf = SVC()
         # clf = clf.fit(hashedTrainFeatures, trainingLabels)
@@ -105,14 +108,14 @@ class textClassificationSklearn():
         # metricsClassifier.classificationReport(testingLabels, clf_predict, clf)
 
         clf = DecisionTreeClassifier()
-        clf = clf.fit(vectorized.toarray(), trainingLabels+testingLabels)
+        clf = clf.fit(vectorized.toarray(), trainingLabels + testingLabels)
         #
         # clf_predict = clf.predict(vectorizeTestData.toarray())
         # metricsClassifier.classificationReport(testingLabels, clf_predict)
         # predictedLabels = metricsClassifier.stratified_cv("Pos-Tags", vec, vectorized, trainingLabels,
         #                                                   DecisionTreeClassifier)
         # showMatrix = metricsClassifier.conf_matrix(16, 12, testingLabels, clf_predict, "Pos-Tags")
-        #metricsClassifier.showImportanceOfFeatures("Pos-Tags",clf,vec.feature_names_)
+        # metricsClassifier.showImportanceOfFeatures("Pos-Tags",clf,vec.feature_names_)
         metricsClassifier.top10MostImportantFeautures("Pos-Tags", clf, vec.feature_names_)
 
     def classifcationFreqPosTags(self, trainingData, testingData, trainingLabels, testingLabels):
@@ -153,87 +156,93 @@ class textClassificationSklearn():
         metricsClassifier.classificationReport(ytest, predicted)
 
     def validateDataset(self, trainingData, trainingLabels):
-        vectorizer = CountVectorizer(tokenizer=normaliseText)
-        feature_set = vectorizer.fit_transform(trainingData)
-        sel = VarianceThreshold(threshold=(.6 * (1 - .6)))
+        # vec = CountVectorizer(tokenizer=normaliseText)
+        vec = TfidfVectorizer(tokenizer=normaliseText)
+        # vec = DictVectorizer()
+        vectorizedTrainingData = vec.fit_transform(trainingData).toarray()
+        # sel = VarianceThreshold(threshold=(.6 * (1 - .6)))
+        for classifier in (DecisionTreeClassifier, RandomForestClassifier, MultinomialNB):
+            # SVC,kernel='linear',C=1
+            predictedLabels = metricsClassifier.stratified_cv("Decision Tree", vec, vectorizedTrainingData,
+                                                              trainingLabels, SVC, kernel='linear', C=1)
+            showMatrix = metricsClassifier.conf_matrix(16, 12, trainingLabels, predictedLabels,
+                                                       "DecisionTreeClassifier")
+            # metricsClassifier.top10MostImportantFeautures("Semantic_Classes", DecisionTreeClassifier, vec.feature_names_)
+            metricsClassifier.classificationReport(trainingLabels, predictedLabels)
+            break
 
-        predictedLabels = metricsClassifier.stratified_cv("Decision Tree", vectorizer, feature_set, trainingLabels,
-                                                          DecisionTreeClassifier)
-        showMatrix = metricsClassifier.conf_matrix(16, 12, trainingLabels, predictedLabels, "DecisionTreeClassifier")
-        metricsClassifier.classificationReport(trainingLabels, predictedLabels)
+    def validateDataset2(self, trainingData, testing, trainingLabels):
+        # vec = CountVectorizer(tokenizer=normaliseText)
+        vec = DictVectorizer()
+
+        vectorizedTrainData = vec.fit_transform(trainingData)
+        vectorizeTestData = vec.transform(testing)
+
+
+        # Use imputer to substitute the missing values with the mean of the its' collumn values
+        imp = Imputer(missing_values=0, strategy='mean', axis=0)
+        imp.fit(vectorizedTrainData)
+        trialData = imp.fit_transform(vectorizedTrainData)
+        trialTest = imp.transform(vectorizeTestData)
+        # print len(vec.feature_names_)
+
+
+        # Return only the non-nan feature names
+        invalid_mask = np.isnan(imp.statistics_)
+        valid_mask = np.logical_not(invalid_mask)
+        valid_idx, = np.where(valid_mask)
+        vFeature_names = np.asarray(vec.feature_names_)[valid_idx]
+
+        vectorizedTrainingData = vec.fit_transform(trainingData).toarray()
+        # sel = VarianceThreshold(threshold=(.6 * (1 - .6)))
+
+        for classifier in (DecisionTreeClassifier, RandomForestClassifier, MultinomialNB):
+            predictedLabels = metricsClassifier.stratified_cv("Decision Tree", vec, trialData,
+                                                              trainingLabels, SVC, kernel='linear', C=1)
+            showMatrix = metricsClassifier.conf_matrix(16, 12, trainingLabels, predictedLabels,
+                                                       "DecisionTreeClassifier")
+
+            # metricsClassifier.top10MostImportantFeautures("Semantic_Classes", DecisionTreeClassifier, vec.feature_names_)
+            metricsClassifier.classificationReport(trainingLabels, predictedLabels)
+            break
 
     def run_classifier(self):
-        Xtrain, X_test, y_train, y_test = train_test_split([element[0] for element in self.labeledData],
+        Xtrain, Xtest, y_train, y_test = train_test_split([element[0] for element in self.labeledData],
                                                            [element[1] for element in self.labeledData],
                                                            test_size=0.33,
                                                            random_state=43)
-        # self.tuneParameters(Xtrain, X_test, y_train, y_test)
-        if self.choice == 0:
-            self.classificaitonPosTags(Xtrain, X_test, y_train, y_test)
-        elif self.choice == 1:
-            self.classifcationFreqPosTags(Xtrain, X_test, y_train, y_test)
-        elif self.choice == 4:
-            self.countClassifier(Xtrain, X_test, y_train, y_test)
-        elif self.choice == 5:
-            self.tfIdfClassifier(Xtrain, X_test, y_train, y_test)
-        elif self.choice == 6:
-            self.semantic_classes(Xtrain, X_test, y_train, y_test)
-        elif self.choice == 7:
-            self.classificaitonPosTags(Xtrain, X_test, y_train, y_test)
-        else:
-            raise ValueError('Classifier does not exists')
-
+        # self.tuneParameters(Xtrain, Xtest, y_train, y_test)
+        # if self.choice == 0:
+        #     self.classificaitonPosTags(Xtrain, Xtest, y_train, y_test)
+        # elif self.choice == 1:
+        #     self.classifcationFreqPosTags(Xtrain, Xtest, y_train, y_test)
+        # elif self.choice == 4:
+        #     self.countClassifier(Xtrain, Xtest, y_train, y_test)
+        # elif self.choice == 5:
+        #     self.tfIdfClassifier(Xtrain, Xtest, y_train, y_test)
+        # elif self.choice == 6:
+        #     self.semantic_classes(Xtrain, Xtest, y_train, y_test)
+        # elif self.choice == 7:
+        #     self.classificaitonPosTags(Xtrain, Xtest, y_train, y_test)
+        # else:
+        #     raise ValueError('Classifier does not exists')
+        #
 
         # pipe = Pipeline([
         #     ('vectorizer', DictVectorizer()),
         #     ('classifier', DecisionTreeClassifier())])
         #
         # classifier = pipe.fit_transform(Xtrain,y_train)
-        # predicted = classifier.predict(X_test)
+        # predicted = classifier.predict(Xtest)
         # metricsClassifier.classificationReport(y_test, predicted)
         # showMatrix = metricsClassifier.conf_matrix(16, 12, y_test, predicted, "Freq-Pos-Tags")
         # metricsClassifier.top10MostImportantFeautures("Freq-Pos-Tags", pipe.named_steps['vectorizer'], pipe.named_steps['vectorizer'].feature_names_)
 
 
-        # self.validateDataset(Xtrain, y_train)
+        self.validateDataset2(Xtrain,Xtest,y_train)
         #
 
-    def tuneParameters(self, xtrain, xtest, ytrain, ytest):
-        tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
-                             'C': [1, 10, 100, 1000]},
-                            {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
-        vec = DictVectorizer()
-        print xtrain
-        vectorizedTrainingData = vec.fit_transform(xtrain).toarray()
-        vectorizeTestData = vec.transform(xtest).toarray()
 
-        # clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5,
-        #                    scoring='%s_weighted' % 'recall')
-
-        clf = SVC(kernel='linear',C=1)
-        clf.fit(vectorizedTrainingData, ytrain)
-
-        print("Best parameters set found on development set:")
-        print()
-        print(clf.best_params_)
-        print()
-        print("Grid scores on development set:")
-        print()
-        for params, mean_score, scores in clf.grid_scores_:
-            print("%0.3f (+/-%0.03f) for %r"
-                  % (mean_score, scores.std() * 2, params))
-        print()
-
-        print("Detailed classification report:")
-        print()
-        print("The model is trained on the full development set.")
-        print("The scores are computed on the full evaluation set.")
-        print()
-        # predicted = clf.predict(vectorizeTestData)
-        # metricsClassifier.classificationReport(ytest,predicted)
-        # print()
-#
-#
 if __name__ == '__main__':
     # option = {0: features.pos_tags,
     #           1: features.pos_tags_frequency,
@@ -243,6 +252,6 @@ if __name__ == '__main__':
     #           5: features.textTweets,
     #           6: features.semantic_classes,
     #           7: features.sentiment_score(),
-    test = textClassificationSklearn(0)
+    test = textClassificationSklearn(7)
     test.run_classifier()
 # test.crossFoldValidation()

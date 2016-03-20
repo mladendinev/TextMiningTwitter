@@ -19,18 +19,20 @@ import nltk
 from nltk.tag.stanford import StanfordNERTagger
 from TweetNLP.twokenize import tokenizeRawTweetText
 
-
-# from enchant.checker.wxSpellCheckerDialog import wxSpellCheckerDialog
 import textExtractor
 import string
 from nltk.stem import WordNetLemmatizer
-
-# import edu.stanford.nlp.trees.semgraph.SemanticGraph
 
 stemmer = nltk.stem.porter.PorterStemmer()
 remove_punctuation_map = dict((ord(char), None) for char in string.punctuation)
 cacheStopwords = stopwords.words('english')
 
+
+
+
+##############################################################################################################
+###########################################NLP TASKS METHODS##################################################
+##############################################################################################################
 
 def duplicates(seq):
     seen = set()
@@ -151,7 +153,7 @@ def removeStopwords(text):
 
 
 def analyseText(tweet):
-    tweet = tweet.replace("\n",' ')
+    tweet = tweet.replace("\n", ' ')
     tweet = tweet.replace("&amp", "")
     emojiRemove = remove_emoji(tweet)
     objRemove = objectRemoval(emojiRemove)
@@ -225,6 +227,8 @@ def compose(*functions):
 
 
 stem_buckets = {}
+
+
 def normaliseText(tweet):
     global stem_buckets
     tweet = tweet.lower()
@@ -284,6 +288,7 @@ def label_entity(sent):
         chunks.append(first_chunk)
     return chunks
 
+
 def semanticNormalisation(listData):
     normalised = []
     for element in listData:
@@ -291,13 +296,13 @@ def semanticNormalisation(listData):
         normalised.append(element)
     return normalised
 
+
 def normSentiment(tweet):
-    #emojiRemove = remove_emoji(tweet)
-    tweet = tweet.replace("\n",' ')
+    # emojiRemove = remove_emoji(tweet)
+    tweet = tweet.replace("\n", ' ')
     tweet = tweet.replace("&amp", "")
     tweet = replaceAbbreviation(tweet)
     return tweet
-
 
 # def dependencyTree(self):
 #     dependencies = self.parser.parseToStanfordDependencies("Ivan is a good guy.")

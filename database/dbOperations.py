@@ -134,7 +134,6 @@ class dbOperations:
             print e
             pass
 
-
     def exportPositiveDiagnosticTweets(self, collection):
         try:
             with codecs.open('diagnostic_tweets', 'a', 'utf-8') as outfile:
@@ -145,12 +144,6 @@ class dbOperations:
                     query = 'user.' + user + '.label'
                     for doc in self.db[collection].find({query: "positive"}):
                         text = doc['text'].replace("\n", ' ')
-
-                        # string = list(doc['text'])
-                        # for i,char in string:
-                        #     if string[i] == "\n":
-                        #         string[i] = " "
-                        # tweet=''.join(string)
                         text = textPreprocessing.analyseText(text)
                         tweet = text.lower()
                         outfile.write(tweet + "\n")
@@ -177,6 +170,7 @@ class dbOperations:
                  'unlabeled_entities': doc['unlabeled_entities'],
                  'pod': doc['pod'], 'semantic_class': doc['semantic_class'],
                  'min_after_midnight': doc['min_after_midnight'],
+                 'user_id': doc['userId'],
                  })
         return collumns
 
@@ -249,25 +243,22 @@ class dbOperations:
             elif doc["utc_offset"] != None:
                 localtime = IR.calculate_localtime(doc["created_at"], doc["utc_offset"])
             elif doc["time_zone"] != None:
-                localtime = IR.convertTimezoneToLocal(doc["time_zone"],doc["created_at"])
+                localtime = IR.convertTimezoneToLocal(doc["time_zone"], doc["created_at"])
             else:
                 localtime = None
             self.db[collection].update({'_id': ObjectId(doc["_id"])}, {'$set': {"local_time_tweet": localtime}},
-                                           upsert=False,
-                                           multi=True)
+                                       upsert=False,
+                                       multi=True)
 
-    def convertTimeToMins(self,collection):
+    def convertTimeToMins(self, collection):
         for doc in self.db[collection].find():
-            if doc["local_time_tweet"] !=None:
+            if doc["local_time_tweet"] != None:
                 convertTime = IR.minutes_after_midnight(doc["local_time_tweet"])
                 self.db[collection].update({'_id': ObjectId(doc["_id"])}, {'$set': {"min_after_midnight": convertTime}},
                                            upsert=False,
                                            multi=True)
 
-
     def pos_tagging(self, collection):
-        feature_vector = []
-        counter = 0
         for doc in self.db[collection].find(
                 {"$and": [{"user.rmorris.label": {"$exists": True}}, {"user.nberry.label": {"$exists": False}}]}):
             result = textPreprocessing.tokenizeText(doc['text'])
@@ -280,7 +271,6 @@ class dbOperations:
             self.db[collection].update({'_id': ObjectId(doc["_id"])},
                                        {'$set': {"pos_tags": pos_tags, "freq_pos": frequency}}, upsert=False,
                                        multi=True)
-
 
     def updateCommon(self, collection):
         counter = 0
@@ -308,7 +298,10 @@ class dbOperations:
 
     def semantic_classes(self, collection):
         for doc in self.db[collection].find():
+                # {"$or": [{"user.rmorris.label": {"$exists":True}}, {"user.nberry.label": {"$exists":True}}]}):
+        #for doc in self.db[collection].find({"tweet_id" : 694233100549619713}):
             listEntry = []
+            semantic_class = []
             for semantic in self.db['semantic_classes'].find():
                 normalisedEntity = [x.lower() for x in semantic['entities']]
                 normalisedText = [x.lower() for x in textPreprocessing.tokenizeText(doc['text'])]
@@ -317,22 +310,20 @@ class dbOperations:
                     for element in interesection:
                         data = {semantic['name']: element}
                         listEntry.append(data)
-
+                        semantic_class.append(semantic['name'])
             self.db[collection].update({'_id': ObjectId(doc['_id'])},
-                                       {'$set': {"semantic_class": listEntry}},
+                                       {'$set': {"semantic_class_entities": listEntry ,"semantic_class": Counter(semantic_class)}},
                                        upsert=False,
                                        multi=True)
 
-    def findAndReturn(self,collection,query):
+    def findAndReturn(self, collection, query):
         output = []
         for doc in self.db[collection].find(query):
             output.append(doc)
         return output
 
-
-    def sentimentPolarity(self,collection):
-        counter = 0
-        for doc in self.db[collection].find({"sentiment_strength":{"$exists":False}}):
+    def sentimentPolarity(self, collection):
+        for doc in self.db[collection].find({"sentiment_strength": {"$exists": False}}):
             tweet = textPreprocessing.normSentiment(doc['text']).encode('ascii', 'ignore')
             if len(tweet) > 1:
                 sentiment = PythonWrapSentiment().RateSentiment(tweet)
@@ -341,7 +332,7 @@ class dbOperations:
                                            upsert=False,
                                            multi=True)
 
-    def semanticVariety(self,collection):
+    def semanticVariety(self, collection):
         varietySemantic = []
         for doc in self.db[collection].find():
             if doc["semantic_class"]:
@@ -349,3 +340,43 @@ class dbOperations:
                     for key in dictionary:
                         varietySemantic.append(key)
         return Counter(varietySemantic)
+
+    #
+    def UpdateSemanticTrends(self):
+        counter = 100
+        seen = []
+        positiveSentiment = []
+        diagnosticDate = ''
+        negativeSentiment = []
+        for doc in self.db["diagnosticTweets"].find(
+                {"$or": [{"user.rmorris.label": "positve"}, {"user.nberry.label": "positve"}]}):
+            if doc["userId"] not in seen:
+                counter +=1
+                if counter == 100:
+                    break
+                seen.append(doc['userId'])
+                dateDiagnostic = IR.format_date(doc['created_at'])
+                for doc in self.db["timelineDiagnosedUsers2"].find({'userId':doc["userId"]}):
+                    sentiment = doc['sentiment_strength']
+                    createdAt = IR.format_date(doc['created_at'])
+                    differenceDays = (createdAt - dateDiagnostic).days
+                    print differenceDays
+                    if abs(differenceDays) < 100:
+                        if sentiment == "positive":
+                            positiveSentiment.append(differenceDays)
+                        elif sentiment == 'negative':
+                            negativeSentiment.append(differenceDays)
+                        else:
+                            pass
+
+        # self.db['extraInformation'].insert(
+        #     {"positiveDistribution6": positiveSentiment, 'negativeDistribution6': negativeSentiment})
+    # return negativeSentimentAfter,positiveSentimentAfter
+
+
+    def returnSemanticTrends(self):
+        result = self.db['extraInformation'].find_one({"positiveDistribution6": {"$exists": True}})
+        positiveSentiment = result['positiveDistribution6']
+        negativeSentiment = result['negativeDistribution6']
+        print len(positiveSentiment), len(negativeSentiment)
+        return positiveSentiment, negativeSentiment

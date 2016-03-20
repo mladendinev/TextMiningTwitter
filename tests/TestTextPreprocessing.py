@@ -11,7 +11,7 @@ def func(x):
 class TestTextPreprocessing(unittest.TestCase):
     def test_english_language(self):
         """Is five successfully determined to be prime?"""
-        text = "@JacobWhitesides I'm learning about schizophrenia"
+        text = u"@JacobWhitesides I'm learning about schizophrenia"
         self.assertEquals(process.detectLanguage(text), True)
 
     def test_spanish_language(self):
@@ -19,7 +19,7 @@ class TestTextPreprocessing(unittest.TestCase):
         self.assertEquals(process.detectLanguage(text.encode("utf-8")), False)
 
     def test_cotains_links(self):
-        text = 'Beyond the Big Name Brands. My piece with @HeinzMarketing http://t.co/gcL4PQDWhw #salesenablement @clicktotweet '
+        text = u'Beyond the Big Name Brands. My piece with @HeinzMarketing http://t.co/gcL4PQDWhw #salesenablement @clicktotweet '
         self.assertEquals(process.containLinks(text.encode("utf-8")), True)
 
     def test_retweeted_links(self):
@@ -49,8 +49,6 @@ class TestTextPreprocessing(unittest.TestCase):
     def test_stemming(self):
         text = ['diagnosed']
         self.assertEquals(process.stemming(text), "diagnos")
-
-
 
 if __name__ == '__main__':
     unittest.main()

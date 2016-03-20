@@ -10,7 +10,7 @@ import Classifiers
 
 import metricsClassifier
 
-
+# Return the feature model with respect to the selected option
 class guiInteractions():
     def featureModel(self, featureOp):
         if featureOp == "word frequency":
@@ -26,33 +26,40 @@ class guiInteractions():
         elif featureOp == 'semantic classes':
             result = models.modelSemanticClasses()
         elif featureOp == 'sentiment':
-            result = 0
+            result = models.modelSentiment()
+        elif featureOp == "words and pos-tags":
+            result = models.featuresCombined(models.modelBagOfWords(),models.modelPosTag())
+        elif featureOp == "tf-idf and semantic classes":
+            result = models.featuresCombined(models.modelTfIDf(),models.modelSemanticClasses())
         else:
-            result = 0
             raise ValueError("The feature " + featureOp + " doesn't exist")
         return result
 
+    #Predict the test instances using the specified classifier
     def train_info(self, featureOption, classifierOption, run="Train/Test"):
         global classifier
         featureMod = self.featureModel(featureOption)
-        if classifierOption == 'Dicision Tree':
-            classifier = Classifiers.decisitonTree(featureMod[0], featureMod[1], featureMod[2])
+        if classifierOption == 'Decision Tree':
+            classifier = Classifiers.decisionTree(featureMod[0], featureMod[1], featureMod[2])
         elif classifierOption == 'SVM':
             classifier = Classifiers.svc(featureMod[0], featureMod[1], featureMod[2])
         elif classifierOption == 'Multinomial Naive Bayes':
             classifier = Classifiers.multiNaiveBayes(featureMod[0], featureMod[1], featureMod[2])
+        elif classifierOption == 'Linear SVC':
+            classifier = Classifiers.linearSVC(featureMod[0], featureMod[1], featureMod[2])
         else:
             raise ValueError("The classifier doesn't exist")
-        return classifier, featureMod[3],featureMod[4]
+        return classifier, featureMod[3], featureMod[4]
 
+    #Combine the above two methods in one method for simplicity
     def run(self, featureOption, classifierOption, operation):
         if operation == "Train/Test":
-            classifier,vector,tweetIds = self.train_info(featureOption, classifierOption)
-            return classifier[0],tweetIds
+            classifier, vector, tweetIds = self.train_info(featureOption, classifierOption)
+            return classifier[0], tweetIds
         elif operation == "Info":
-            classifier,vector,tweetIds = self.train_info(featureOption, classifierOption)
+            classifier, vector, tweetIds = self.train_info(featureOption, classifierOption)
             result = metricsClassifier.top10MostImportantFeautures("Freq-Pos-Tags", classifier[1],
-                                                               vector)
+                                                                   vector)
         else:
             raise ValueError("Wrong option")
         return result

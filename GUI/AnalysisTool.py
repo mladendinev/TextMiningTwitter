@@ -43,9 +43,6 @@ class TwitterAnalysisApp(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
 
-        # the container is where we'll stack a bunch of frames
-        # on top of each other, then the one we want visible
-        # will be raised above the others
         container = tk.Frame(self)
         container.grid(sticky=tk.N + tk.S + tk.E + tk.W)
         # container.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=tk.YES)
@@ -54,17 +51,15 @@ class TwitterAnalysisApp(Tk):
 
         self.data_storage = {"selected_tweets": StringVar(),
                              "test": StringVar(),
-                             "tweets": ''
+                             "timeline_users": list,
                              }
         self.frames = {}
         for F in (MainFrame, DiagnosticFrame, Statistics, ExtractUserTimelines):
             page_name = F.title1
-            print page_name
             frame = F(container, self)
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky=tk.N + tk.S + tk.E + tk.W)
-
-        self.show_frame("Extract Timelines")
+        self.show_frame("Main Frame")
 
 
     def show_frame(self, page_name):
@@ -75,12 +70,7 @@ class TwitterAnalysisApp(Tk):
             frame.grid_remove()
         frame = self.frames[page_name]
         frame.grid()
-        if page_name == "Main Frame":
-            frame.winfo_toplevel().geometry("400x300")
-        # elif page_name == "Diagnostic Frame":
-        #     frame.winfo_toplevel().geometry("400x300")
-        else:
-            frame.winfo_toplevel().geometry("")
+        frame.winfo_toplevel().geometry("")
 
 
 app = TwitterAnalysisApp()

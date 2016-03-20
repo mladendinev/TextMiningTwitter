@@ -128,18 +128,3 @@ if __name__ == '__main__':
     logger.addHandler(fh)
     fetchSleepRealtedTweets()
 
-
-# datapath = '/home/mladen/TextMiningTwitter/data'
-# completeName = os.path.join(datapath, 'statistics' + str(numbIter) + ".txt")
-# f = open(completeName, 'w')
-# f.write("Number of tweets fetched" + " " + str(count))
-# f.write('\n')
-# f.write("Number of valid tweets" + " " + str(numbValidTweets))
-#
-# if __name__ == '__main__':
-#     print "Searching tweets..."
-#     runTweets()
-
-# print json.dumps(statuses[0], indent=1)
-
-# print 'Length: %s' % len(statuses)

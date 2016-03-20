@@ -8,9 +8,12 @@ from nltk.corpus import sentiwordnet as swn
 from nltk.corpus import wordnet as wn
 import dataAnalysis
 from textProcessing import textExtractor
-
+import numpy as np
 sleepDrugs = "/home/mladen/TextMiningTwitter/word_lists/sleepDrugs.txt"
-# THE METHODS EXTRACT THE FEATURE DIRECTLY FROM THE ALREADY PRE-PROCESSED JSON
+
+########################################################################################################################
+#################### THE METHODS EXTRACT THE FEATURE DIRECTLY FROM THE ALREADY PRE-PROCESSED DATABASE JSON##############
+######################################################################################
 
 ###############TEXT EXTRACTOR#########################
 def textTweets():
@@ -24,8 +27,8 @@ def textTweets():
     for tweet in data[0]:
         if tweet["tweet_id"] not in seen:
             seen.append(tweet["tweet_id"])
-        tupple = (tweet['text'], 'pos')
-        positiveExamples.append(tupple)
+            tupple = (tweet['text'], 'pos')
+            positiveExamples.append(tupple)
 
     for tweet in data[1]:
         if tweet["tweet_id"] not in seen:
@@ -34,13 +37,14 @@ def textTweets():
             negativeExamples.append(tupple)
 
     for tweet in timeline:
-        if tweet["tweet_id"] not in seen:
-            seen.append(tweet["tweet_id"])
-            entry = (tweet['text'])
-            testing.append(entry)
-
+        # if tweet["tweet_id"] in seen:
+        #     print "already seen : %s" % tweet['tweet_id']
+        seen.append(tweet["tweet_id"])
+        entry = (tweet['text'])
+        testing.append(entry)
     print "Number negative annotated", len(negativeExamples)
     print "Number positive annotated", len(positiveExamples)
+    print "Number testing tweets", len(positiveExamples)
     return positiveExamples + negativeExamples, testing
 
 
@@ -63,74 +67,101 @@ def pos_tags():
     negativeExamples = []
     positiveExamples = []
     testing = []
+    textTweet = []
     global counter
     global tupple
     for tweet in data[0]:
         if tweet["tweet_id"] not in seen:
             seen.append(tweet["tweet_id"])
-            if tweet["pos_tags"]:
-                pos_tag = [element[1] for element in tweet['pos_tags']]
+            if 'pos_tags' in tweet:
+                tweet_pos_tags = tweet['pos_tags'] or []
+                pos_tag = [element[1] for element in tweet_pos_tags]
                 counter = Counter(pos_tag)
                 tupple = (counter, 'pos')
                 positiveExamples.append(tupple)
-                random.shuffle(positiveExamples)
+
 
     for tweet in data[1]:
         if tweet["tweet_id"] not in seen:
             seen.append(tweet["tweet_id"])
-            if tweet["pos_tags"]:
-                pos_tag = [element[1] for element in tweet['pos_tags']]
+            if 'pos_tags' in tweet:
+                tweet_pos_tags = tweet['pos_tags'] or []
+                pos_tag = [element[1] for element in tweet_pos_tags]
                 counter = Counter(pos_tag)
                 tupple = (counter, 'neg')
                 negativeExamples.append(tupple)
-                random.shuffle(negativeExamples)
 
     for tweet in timeline:
-        if tweet["pos_tags"]:
-            seen.append(tweet["text"])
-            pos_tag = [element[1] for element in tweet['pos_tags']]
+        if 'pos_tags' in tweet:
+            tweet_pos_tags = tweet['pos_tags'] or []
+            textTweet.append(tweet["text"])
+            pos_tag = [element[1] for element in tweet_pos_tags]
             counter = Counter(pos_tag)
             testing.append(counter)
-
     print "Number negative annotated", len(negativeExamples)
     print "Number positive annotated", len(positiveExamples)
-    return positiveExamples + negativeExamples[1:155], testing, seen[-len(testing):]
+    print "Number testing tweets", len(positiveExamples)
+    return positiveExamples + negativeExamples, testing, textTweet
 
 
-def time_as_minutes():
+###############SEMANTIC CLASSES EXTRACTOR#########################
+def semantic_classes():
     data = dataAnalysis.trainingData()
     timeline = dataAnalysis.timelineTweets
     seen = []
     negativeExamples = []
     positiveExamples = []
     testingExamples = []
-    global counter
+    text = []
     global tupple
     for tweet in data[0]:
         if tweet["tweet_id"] not in seen:
             seen.append(tweet["tweet_id"])
-            if tweet["min_after_midnight"]:
-                tupple = ({'min_after_midnight': tweet["min_after_midnight"]}, 'pos')
+            if 'semantic_class' in tweet:
+                semantic_words = tweet['semantic_class'] or []
+                # # finalMap = {}
+                if semantic_words:
+                    #     for d in semantic_words:
+                    # print d
+                    # print tweet['semantic_class']
+                    # print tweet['tweet_id']
+                    # finalMap.update(d)
+                    tupple = (semantic_words, 'pos')
+                else:
+                    tupple = (Counter(),'pos')
                 positiveExamples.append(tupple)
-                random.shuffle(positiveExamples)
 
     for tweet in data[1]:
         if tweet["tweet_id"] not in seen:
             seen.append(tweet["tweet_id"])
-            if tweet["min_after_midnight"]:
-                tupple = ({'min_after_midnight': tweet["min_after_midnight"]}, 'neg')
+            if 'semantic_class' in tweet:
+                semantic_words = tweet['semantic_class'] or []
+                # finalMap = {}
+                if semantic_words:
+                #     #     for d in semantic_words:
+                #     #         finalMap.update(d)
+                    tupple = (semantic_words, 'neg')
+                else:
+                    tupple = (Counter(), 'neg')
                 negativeExamples.append(tupple)
-                random.shuffle(negativeExamples)
 
     for tweet in timeline:
-        if tweet["min_after_midnight"]:
-            seen.append(tweet['text'])
-            entry = ({'min_after_midnight': tweet["min_after_midnight"]})
+        if 'semantic_class' in tweet:
+            semantic_words = tweet['semantic_class'] or []
+            text.append(tweet["text"])
+            # finalMap = {}
+            if semantic_words:
+                #     for d in semantic_words:
+                #         finalMap.update(d)
+                entry = semantic_words
+            else:
+                entry = (Counter())
             testingExamples.append(entry)
 
     print "Number negative annotated", len(negativeExamples)
     print "Number positive annotated", len(positiveExamples)
-    return positiveExamples + negativeExamples, testingExamples, seen[-len(testingExamples):]
+    return positiveExamples + negativeExamples, testingExamples, text
+
 
 
 ###############POS FREQUENCY EXTRACTOR#########################
@@ -141,13 +172,15 @@ def pos_tags_frequency():
     testing = []
     negativeExamples = []
     positiveExamples = []
+    text = []
     global counter
     global tupple
     for tweet in data[0]:
         if tweet["tweet_id"] not in seen:
             seen.append(tweet["tweet_id"])
-            if tweet["pos_tags"]:
-                pos_tag = [element[1] for element in tweet['pos_tags']]
+            if 'pos_tags' in tweet:
+                tweet_pos_tags = tweet['pos_tags'] or []
+                pos_tag = [element[1] for element in tweet_pos_tags]
                 counter = Counter(pos_tag)
                 if len(counter) >= 2:
                     counter = counter.most_common(2)
@@ -158,8 +191,9 @@ def pos_tags_frequency():
     for tweet in data[1]:
         if tweet["tweet_id"] not in seen:
             seen.append(tweet["tweet_id"])
-            if tweet["pos_tags"]:
-                pos_tag = [element[1] for element in tweet['pos_tags']]
+            if 'pos_tags' in tweet:
+                tweet_pos_tags = tweet['pos_tags'] or []
+                pos_tag = [element[1] for element in tweet_pos_tags]
                 counter = Counter(pos_tag)
                 if len(counter) >= 2:
                     counter = counter.most_common(2)
@@ -168,17 +202,167 @@ def pos_tags_frequency():
                     random.shuffle(negativeExamples)
 
     for tweet in timeline:
-        if tweet["pos_tags"]:
-            pos_tag = [element[1] for element in tweet['pos_tags']]
+        if 'pos_tags' in tweet:
+            tweet_pos_tags = tweet['pos_tags'] or []
+            pos_tag = [element[1] for element in tweet_pos_tags]
             counter = Counter(pos_tag)
             if len(counter) >= 2:
-                seen.append(tweet["text"])
+                text.append(tweet["text"])
                 counter = counter.most_common(2)
                 testing.append(dict(counter))
 
     print "Number negative annotated", len(negativeExamples)
     print "Number positive annotated", len(positiveExamples)
-    return positiveExamples + negativeExamples[1:100], testing, seen[-len(testing):]
+    print "Number testing tweets", len(positiveExamples)
+    return positiveExamples + negativeExamples, testing, text
+
+
+#########SENTIMENT SCORE FEATURE EXTRACTOR############################
+def sentiment_score():
+    data = dataAnalysis.trainingData()
+    timeline = dataAnalysis.timelineTweets
+    positiveExamples = []
+    negativeExamples = []
+    seen = []
+    tweetsText = []
+    testingExamples = []
+    sentiment_score_tweet = 0
+    global polarity_of_word
+    adverbs = ['pretty', 'fairly', 'really', 'very', 'quite']
+    ###########Positive labels from th
+    for tweet in data[0]:
+        if tweet["tweet_id"] not in seen:
+            seen.append(tweet["tweet_id"])
+            if 'pos_tags' in tweet:
+                wordsInTweet = tweet['pos_tags'] or []
+                # wordsInTweet = tweet["pos_tags"]
+                sentiment_score_tweet = 0
+                if wordsInTweet:
+                    for k,pair in enumerate(wordsInTweet):
+                        wordSentimentScore = sentimentScoreFromSynonyms(pair[0], pair[1])
+                        # if k>0 and (wordsInTweet[k-1][0] in adverbs):
+                        #     if wordSentimentScore> 0:
+                        #         wordSentimentScore += 0.2
+                        #     elif wordSentimentScore < 0:
+                        #         wordSentimentScore -= 0.2
+                        sentiment_score_tweet += wordSentimentScore
+                    tupple = ({"sentiment_score": sentiment_score_tweet}, "pos")
+
+                else:
+                    tupple = ({"sentiment_score": 0}, "pos")
+                positiveExamples.append(tupple)
+
+    for tweet in data[1]:
+        if tweet["tweet_id"] not in seen:
+            seen.append(tweet["tweet_id"])
+            if 'pos_tags' in tweet:
+                wordsInTweet = tweet['pos_tags'] or []
+                # wordsInTweet = tweet["pos_tags"]
+                sentiment_score_tweet = 0
+                if wordsInTweet:
+                    for pair in wordsInTweet:
+                        wordSentimentScore = sentimentScoreFromSynonyms(pair[0], pair[1])
+                        sentiment_score_tweet += wordSentimentScore
+                    tupple = ({"sentiment_score": sentiment_score_tweet}, "neg")
+
+                else:
+                    tupple = ({"sentiment_score": 0}, "neg")
+                negativeExamples.append(tupple)
+
+    for tweet in timeline:
+        if 'pos_tags' in tweet:
+            wordsInTweet = tweet['pos_tags'] or []
+            # wordsInTweet = tweet["pos_tags"]
+            sentiment_score_tweet = 0
+            if wordsInTweet:
+                for pair in wordsInTweet:
+                    wordSentimentScore = sentimentScoreFromSynonyms(pair[0], pair[1])
+                    sentiment_score_tweet += wordSentimentScore
+                tupple = ({"sentiment_score": sentiment_score_tweet})
+
+            else:
+                tupple = ({"sentiment_score": 0})
+            testingExamples.append(tupple)
+            tweetsText.append(tweet['text'])
+    print "Number negative annotated", len(negativeExamples)
+    print "Number positive annotated", len(positiveExamples)
+    return positiveExamples + negativeExamples, testingExamples, tweetsText
+
+
+
+##############################TIME AS MINUTES AFTER MIDNIGHT EXTRACTOR###########################3
+def time_as_minutes():
+    data = dataAnalysis.trainingData()
+    timeline = dataAnalysis.timelineTweets
+    seen = []
+    negativeExamples = []
+    positiveExamples = []
+    testingExamples = []
+    textTweet = []
+    global counter
+    global tupple
+    for tweet in data[0]:
+        if tweet["tweet_id"] not in seen:
+            seen.append(tweet["tweet_id"])
+            if 'min_after_midnight' in tweet:
+                time_tweet = tweet['min_after_midnight'] or None
+                if time_tweet:
+                    tupple = ({'min_after_midnight': time_tweet}, 'pos')
+                else:
+                    tupple = ({'min_after_midnight': 0}, 'pos')
+                positiveExamples.append(tupple)
+
+    for tweet in data[1]:
+        if tweet["tweet_id"] not in seen:
+            seen.append(tweet["tweet_id"])
+            if 'min_after_midnight' in tweet:
+                time_tweet = tweet['min_after_midnight'] or None
+                if time_tweet:
+                    tupple = ({'min_after_midnight': time_tweet}, 'neg')
+                else:
+                    tupple = ({'min_after_midnight': 0}, 'neg')
+                negativeExamples.append(tupple)
+
+    for tweet in timeline:
+        if tweet["min_after_midnight"]:
+            if 'min_after_midnight' in tweet:
+                textTweet.append(tweet['text'])
+                time_tweet = tweet['min_after_midnight'] or None
+                if time_tweet:
+                    entry = ({'min_after_midnight': time_tweet})
+                else:
+                    entry = ({'min_after_midnight': 0})
+                testingExamples.append(entry)
+
+    print "Number negative annotated", len(negativeExamples)
+    print "Number positive annotated", len(positiveExamples)
+    print "Number testing tweets", len(positiveExamples)
+
+    return positiveExamples + negativeExamples, testingExamples, textTweet
+
+
+
+# Get all the synonyms for a word and calculate the sum of their polarity scores
+def sentimentScoreFromSynonyms(word, pos):
+    adverbs = ['pretty', 'fairly', 'really', 'very', 'quite']
+    if mappPosTags(pos) != None:
+        synsets = wn.synsets(word, pos=mappPosTags(pos))
+    else:
+        synsets = wn.synsets(word)
+    if synsets:
+        polarity_synonyms = 0
+        for index in synsets:
+            synonym = index.name()
+            pos_score = swn.senti_synset(synonym).pos_score()
+            neg_score = swn.senti_synset(synonym).neg_score()
+            if pos_score > neg_score:
+                polarity_synonyms += pos_score
+            elif neg_score > pos_score:
+                polarity_synonyms -= neg_score
+        polarity_synonyms = polarity_synonyms / len(synsets)
+        return polarity_synonyms
+    else:
+        return 0
 
 
 ###############NAME ENTITY EXTRACTOR#########################
@@ -202,124 +386,6 @@ def name_entities():
             negativeExamples.append(tupple)
             random.shuffle(negativeExamples)
     return positiveExamples + negativeExamples
-
-
-###############SEMANTIC CLASSES EXTRACTOR#########################
-def semantic_classes():
-    data = dataAnalysis.trainingData()
-    timeline = dataAnalysis.timelineTweets
-    seen = []
-    negativeExamples = []
-    positiveExamples = []
-    testingExamples = []
-    global tupple
-    for tweet in data[0]:
-        if tweet["tweet_id"] not in seen:
-            seen.append(tweet["tweet_id"])
-            if tweet['semantic_class']:
-                finalMap = {}
-                for d in tweet['semantic_class']:
-                    finalMap.update(d)
-                tupple = (finalMap, 'pos')
-                positiveExamples.append(tupple)
-                random.shuffle(positiveExamples)
-
-    for tweet in data[1]:
-        if tweet["tweet_id"] not in seen:
-            seen.append(tweet["tweet_id"])
-            if tweet['semantic_class']:
-                finalMap = {}
-                for d in tweet['semantic_class']:
-                    finalMap.update(d)
-                tupple = (finalMap, 'neg')
-                negativeExamples.append(tupple)
-                random.shuffle(negativeExamples)
-
-    for tweet in timeline:
-        if tweet['semantic_class']:
-            seen.append(tweet["text"])
-            finalMap = {}
-            for d in tweet['semantic_class']:
-                finalMap.update(d)
-            entry = (finalMap)
-            testingExamples.append(entry)
-
-    print "Number negative annotated", len(negativeExamples)
-    print "Number positive annotated", len(positiveExamples)
-    return positiveExamples + negativeExamples[1:21], testingExamples, testingExamples, seen[-len(testingExamples):]
-
-
-def sentiment_score():
-    data = dataAnalysis.trainingData()
-    timeline = dataAnalysis.timelineTweets
-    positiveExamples = []
-    negativeExamples = []
-    seen = []
-    testingExamples = []
-    sentiment_score_tweet = 0
-    global polarity_of_word
-    counter = 0
-    ###########Positive labels from th
-    for tweet in data[0]:
-        if tweet["tweet_id"] not in seen:
-            seen.append(tweet["tweet_id"])
-            if tweet["pos_tags"]:
-                wordsInTweet = tweet["pos_tags"]
-                sentiment_score_tweet = 0
-                for pair in wordsInTweet:
-                    wordSentimentScore = sentimentScoreFromSynonyms(pair[0], pair[1])
-                    sentiment_score_tweet += wordSentimentScore
-                tupple = ({"sentiment_score": sentiment_score_tweet}, "pos")
-                positiveExamples.append(tupple)
-
-    for tweet in data[1]:
-        if tweet["tweet_id"] not in seen:
-            seen.append(tweet["tweet_id"])
-            if tweet["pos_tags"]:
-                wordsInTweet = tweet["pos_tags"]
-                sentiment_score_tweet = 0
-                for pair in wordsInTweet:
-                    wordSentimentScore = sentimentScoreFromSynonyms(pair[0], pair[1])
-                    sentiment_score_tweet += wordSentimentScore
-                tupple = ({"sentiment_score": sentiment_score_tweet}, "neg")
-                negativeExamples.append(tupple)
-
-    for tweet in timeline:
-        if tweet["pos_tags"]:
-            wordsInTweet = tweet["pos_tags"]
-            sentiment_score_tweet = 0
-            for pair in wordsInTweet:
-                wordSentimentScore = sentimentScoreFromSynonyms(pair[0], pair[1])
-                sentiment_score_tweet += wordSentimentScore
-            seen.append(tweet["text"])
-            entry = ({"sentiment_score": sentiment_score_tweet})
-            testingExamples.append(entry)
-
-    print "Number negative annotated", len(negativeExamples)
-    print "Number positive annotated", len(positiveExamples)
-    return positiveExamples + negativeExamples[1:100], testingExamples, testingExamples, seen[-len(testingExamples):]
-
-
-def sentimentScoreFromSynonyms(word, pos):
-    adverbs = ['pretty', 'fairly', 'really', 'very', 'quite']
-    if mappPosTags(pos) != None:
-        synsets = wn.synsets(word, pos=mappPosTags(pos))
-    else:
-        synsets = wn.synsets(word)
-    if synsets:
-        polarity_synonyms = 0
-        for index in synsets:
-            synonym = index.name()
-            pos_score = swn.senti_synset(synonym).pos_score()
-            neg_score = swn.senti_synset(synonym).neg_score()
-            if pos_score > neg_score:
-                polarity_synonyms += pos_score
-            elif neg_score > pos_score:
-                polarity_synonyms -= neg_score
-        polarity_synonyms = polarity_synonyms / len(synsets)
-        return polarity_synonyms
-    else:
-        return 0
 
 
 ####################BIGRAMS EXTRACTOR#############################
@@ -394,7 +460,6 @@ def mentionOfDrugs():
             mentions.append(len(mentions))
         else:
             mentions.append(0)
-
     feature_vector.append(mentions)
     return feature_vector
 
@@ -424,3 +489,11 @@ def mapping(x):
         'Stigmatising mental health related terms': 'menthal_health_terms',
         'Own voice': 'own_voice',
     }[x]
+
+def all_occurences(file, str):
+    initial = 0
+    while True:
+        initial = file.find(str, initial)
+        if initial == -1: return
+        yield initial
+        initial += len(str)

@@ -2,6 +2,8 @@ __author__ = 'mladen'
 from database.dbOperations import dbOperations
 import textPreprocessing as func
 
+
+# The dataset used for feature extraction and analysis
 rohanSleepTweetsPos = dbOperations("remote").returnInfoExtraction("sleepTweetsTestLocal", "user.rmorris.label",
                                                                   {"user.rmorris.label": "positive"})
 
@@ -26,12 +28,12 @@ natalieDiagTweetsPos = dbOperations("remote").returnInfoExtraction("AnnotatedDia
 rohanDiagTweetsPos = dbOperations("remote").returnInfoExtraction("AnnotatedDiagnosticData", "user.rmorris.label",
                                                                  {"user.rmorris.label": "positve"})
 
-timelineTweets = dbOperations("remote").findAndReturn("timelineDiagnosedUsers2", None)
+timelineTweets = dbOperations("remote").findAndReturn("timelineDiagnosedUsers2", None)[:200]
 
 
 def trainingData():
-    return rohanSleepTweetsPos + natalieSleepTweetsPos, rohanSleepTweetsNeg + natalieSleepTweetsNeg \
-           + natalieDiagTweetsNeg + rohanDiagTweetsNeg
+    return rohanSleepTweetsPos + natalieSleepTweetsPos, rohanSleepTweetsNeg + natalieSleepTweetsNeg+\
+           natalieDiagTweetsNeg + rohanDiagTweetsNeg
 
 
 def returnDiagnosticPositive():
@@ -39,8 +41,7 @@ def returnDiagnosticPositive():
     text = []
     for doc in natalieDiagTweetsPos + rohanDiagTweetsPos:
         if doc['tweet_id'] not in seen:
-            seen.append(doc['tweet_id'])
-            print doc['tweet_id']
+            seen.append(doc['user_id'])
             text.append(func.analyseText(doc['text']))
     return text, seen
 
@@ -73,7 +74,3 @@ def returnSleepNeg():
             seen.append(doc['tweet_id'])
             text.append(func.analyseText(doc['text']))
     return text
-
-    # for tweet in positiveTweets:
-    #     print tweet
-    #     print '\n'

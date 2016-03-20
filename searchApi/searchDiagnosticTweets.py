@@ -104,17 +104,6 @@ def fetchDiagnosticTweets():
             except twitter.api.TwitterHTTPError as e:
                 logger.error("Exception thrown %e",exc_info=True)
 
-                # except tw as e:
-
-                #
-                # datapath = '/home/mladen/TextMiningTwitter/data/statistics'
-                # completeName = os.path.join(datapath, 'diagnosisStats' + str(numbIter) + ".txt")
-                # f = open(completeName, 'w')
-                # f.write("Number of tweets fetched" + " " + str(self._countTweets))
-                # f.write('\n')
-                # f.write("Number of valid tweets" + " " + str(self._numbValidTweets))
-
-
 if __name__ == '__main__':
     print "Searching tweets..."
     fh = logging.FileHandler('/home/mladen/TextMiningTwitter/auth/log/logDiagnostic.log')

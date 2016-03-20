@@ -3,9 +3,7 @@ import textPreprocessing
 import tfidf
 import negationDetection
 from database import dbOperations
-from GUI import visualiseStats
-from textProcessing.informationRetrieval import IR
-from nltk.sentiment.util import demo_sent_subjectivity
+
 
 class testTweetsOperations():
     if __name__ == "__main__":
@@ -33,24 +31,26 @@ class testTweetsOperations():
         # print  featureExtraction.sentiment_score(text2)
         # up = dbOperations.dbOperations("remote").updateCommon("diagnosticTweets")
 
-        # print dbOperations.dbOperations("remote").semanticVariety("timelineDiagnosedUsers2")
-        print dbOperations.dbOperations("remote").sentimentPolarity("timelineDiagnosedUsers2")
+        #dbOperations.dbOperations("remote").UpdateSemanticTrends()
+        #dbOperations.dbOperations("remote").semantic_classes('timelineDiagnosedUsers2')
+        # dbOperations.dbOperations("remote").semantic_classes('AnnotatedDiagnosticData')
+        # dbOperations.dbOperations("remote").semantic_classes('diagnosticTweets')
+       # dbOperations.dbOperations("remote").semantic_classes('sleepTweetsTestLocal')
         # from textProcessing import featureExtraction
         # featureExtraction.sentiment_score()
 
         #print visualiseStats.overallStatistics()
 
-        # laino = CMUTweetTagger.runtagger_parse(textPreprocessing.normaliseText(text1))
-        # print laino
+        # tag = CMUTweetTagger.runtagger_parse(textPreprocessing.normaliseText(text1))
         # a = [[('k')]]
-        # print len(laino)
+        # print len(tag)
         # print len(a)
         # try:
 
 
 
-        ############################ FINDING DUPLICATES #############################################
-        # sleepTweets = dbOperations.dbOperations("remote").returnField("sleepTweetsTestLocal", "text")
+        ########################### FINDING DUPLICATES #############################################
+        # sleepTweets = dbOperations.dbOperations("remote").returnField("timelineDiagnosedUsers2", "tweet_id")
         #
         # def list_duplicates(seq):
         #     seen = set()
@@ -64,9 +64,9 @@ class testTweetsOperations():
         # print len(duplicatedTweetIds)
         # print [item for item, count in collections.Counter(duplicatedTweetIds).items() if count > 1]
         # for duplicate in duplicatedTweetIds:
-        #     duplicatedObjectIds = dbOperations.dbOperations("remote").returnObjectIds("timelineDiagnosedUsers",
+        #     duplicatedObjectIds = dbOperations.dbOperations("remote").returnObjectIds("timelineDiagnosedUsers2",
         #                                                                               duplicate)
         #     head, tail = duplicatedObjectIds[0], duplicatedObjectIds[1:]
-        #     dbOperations.dbOperations("remote").deleteDocument("timelineDiagnosedUsers", tail)
-
+        #     dbOperations.dbOperations("remote").deleteDocument("timelineDiagnosedUsers2", tail)
+        #
 
